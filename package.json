@@ -1,0 +1,34 @@
+{
+  "name": "transpile-webpack-plugin",
+  "version": "0.0.0",
+  "description": "",
+  "author": "licg9999 <licg9999@gmail.com>",
+  "repository": "",
+  "homepage": "",
+  "bugs": "",
+  "types": "lib/index.d.ts",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "modules.d.ts",
+    "src"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "peerDependencies": {
+    "webpack": "^5"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.186",
+    "@types/node": "^16.11.64",
+    "prettier": "^2.7.1",
+    "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "schema-utils": "^4.0.0"
+  }
+}
