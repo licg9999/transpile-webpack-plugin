@@ -40,7 +40,7 @@ export class TranspileWebpackPlugin {
   sourceMapDevToolPluginController: SourceMapDevToolPluginController;
 
   constructor(options: TranspileWebpackPluginOptions = {}) {
-    validate(optionsSchema, options, {
+    validate(optionsSchema as object, options, {
       name: pluginName,
       baseDataPath: 'options',
     });

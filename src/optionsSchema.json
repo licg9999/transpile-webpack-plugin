@@ -1,1 +1,40 @@
-{}
+{
+  "type": "object",
+  "properties": {
+    "exclude": {
+      "$ref": "#/$defs/Condition"
+    },
+    "hoistNodeModules": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ConditionSingular"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConditionSingular"
+          }
+        }
+      ]
+    },
+    "ConditionSingular": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "instanceof": "RegExp"
+        },
+        {
+          "instanceof": "Function"
+        }
+      ]
+    }
+  }
+}
