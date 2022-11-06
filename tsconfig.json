@@ -15,5 +15,8 @@
     "strict": true,
     "target": "es2016"
   },
-  "include": ["modules.d.ts", "src"]
+  "include": [
+    "modules.d.ts",
+    "src"
+  ]
 }
