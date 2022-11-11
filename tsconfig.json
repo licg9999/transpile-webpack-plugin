@@ -1,5 +1,7 @@
+// Visit https://aka.ms/tsconfig to read more about this file.
 {
   "compilerOptions": {
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "declarationMap": true,
@@ -7,16 +9,15 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "module": "commonjs",
+    "noEmit": true,
     "outDir": "lib",
     "resolveJsonModule": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es2016"
+    "target": "es2015"
   },
-  "include": [
-    "modules.d.ts",
-    "src"
-  ]
+  "include": ["."],
+  "exclude": ["**/node_modules", "**/coverage", "**/__projects__", "**/lib", "**/.vscode"]
 }

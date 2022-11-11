@@ -1,7 +1,7 @@
 import { clone } from 'lodash';
-import path from 'path';
+import path from 'node:path';
+import { promisify } from 'node:util';
 import { validate } from 'schema-utils';
-import { promisify } from 'util';
 import { Compiler, Dependency, ExternalModule, Module, NormalModule, sources } from 'webpack';
 import ModuleProfile from 'webpack/lib/ModuleProfile';
 import { commonDirSync } from './commonDir';
@@ -55,26 +55,24 @@ export class TranspileWebpackPlugin {
   apply(compiler: Compiler) {
     const { exclude, hoistNodeModules } = this.options;
 
-    throwErrIfOutputPathNotSpecified(compiler.options);
-    throwErrIfTargetNotSupported(compiler.options);
-    forceDisableSplitChunks(compiler.options);
-    forceSetLibraryType(compiler.options, moduleType);
-
-    const outputPath = compiler.options.output.path!;
-    const outputPathOfNodeModules = path.resolve(outputPath, baseNodeModules);
-
-    const resolveExtensions = compiler.options.resolve.extensions ?? [];
-
     const isPathExcluded = createConditionTest(exclude);
     const isPathInNodeModules = createConditionTest(reNodeModules);
 
     this.sourceMapDevToolPluginController.apply(compiler);
 
     compiler.hooks.environment.tap({ name: pluginName, stage: stageVeryEarly }, () => {
+      throwErrIfOutputPathNotSpecified(compiler.options);
+      throwErrIfTargetNotSupported(compiler.options);
+      forceDisableSplitChunks(compiler.options);
+      forceSetLibraryType(compiler.options, moduleType);
       unifyDependencyResolving(compiler.options, moduleType.split('-')[0]);
     });
 
     compiler.hooks.finishMake.tapPromise(pluginName, async (compilation) => {
+      const outputPath = compiler.options.output.path!;
+      const outputPathOfNodeModules = path.resolve(outputPath, baseNodeModules);
+      const resolveExtensions = compiler.options.resolve.extensions ?? [];
+
       const entryDeps = new Map<string, Dependency>();
       const touchedMods = new Set<Module>();
       for (const e of compilation.entries.values()) {

@@ -13,17 +13,17 @@
     "Condition": {
       "oneOf": [
         {
-          "$ref": "#/$defs/ConditionSingular"
+          "$ref": "#/$defs/SingularCondition"
         },
         {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/ConditionSingular"
+            "$ref": "#/$defs/SingularCondition"
           }
         }
       ]
     },
-    "ConditionSingular": {
+    "SingularCondition": {
       "oneOf": [
         {
           "type": "string"
