@@ -6,12 +6,12 @@ import {
 } from '../support-helpers';
 
 describe('validates compiler options', () => {
-  function setup(opts: { target?: boolean }) {
+  function setup(validOpts: { target?: boolean }) {
     setupWebpackProject({
       'webpack.config.js': `
 const Plugin = require(${rootPathAsLiteral});
 module.exports = {
-  ${boolToText(opts.target, `target: 'node',`, `target: 'webworker',`)}
+  ${boolToText(validOpts.target, `target: 'node',`, `target: 'webworker',`)}
   plugins: [new Plugin()]
 };`,
     });
@@ -33,7 +33,7 @@ module.exports = {
 });
 
 describe('validates plugin options', () => {
-  function setup(opts: { exclude?: boolean; hoistNodeModules?: boolean }) {
+  function setup(validOpts: { exclude?: boolean; hoistNodeModules?: boolean }) {
     setupWebpackProject({
       'webpack.config.js': `
 const Plugin = require(${rootPathAsLiteral});
@@ -41,8 +41,8 @@ module.exports = {
   target: 'node',
   plugins: [
     new Plugin({
-      ${boolToText(opts.exclude, `exclude: /bower_components/,`, `exclude: false,`)}
-      ${boolToText(opts.hoistNodeModules, `hoistNodeModules: false,`, `hoistNodeModules: 0,`)}
+      ${boolToText(validOpts.exclude, `exclude: /bower_components/,`, `exclude: false,`)}
+      ${boolToText(validOpts.hoistNodeModules, `hoistNodeModules: false,`, `hoistNodeModules: 0,`)}
     })
   ]
 };`,
@@ -61,5 +61,40 @@ module.exports = {
     const { status, stderr } = execWebpack();
     expect(status).toBeGreaterThan(0);
     expect(stderr).toIncludeMultiple(['Invalid', 'hoistNodeModules']);
+  });
+});
+
+describe('validates entries', () => {
+  it(`throws error if no entry found outside 'node_modules'`, () => {
+    setupWebpackProject({
+      'webpack.config.js': `
+const Plugin = require(${rootPathAsLiteral});
+module.exports = {
+  entry: require.resolve('lodash'),
+  target: 'node',
+  plugins: [new Plugin()]
+};`,
+    });
+    execWebpack();
+    const { status, stderr } = execWebpack();
+    expect(status).toBeGreaterThan(0);
+    expect(stderr).toIncludeMultiple(['Error', 'No entry', `outside 'node_modules'`]);
+  });
+
+  it(`throws error if any '.mjs' file found`, () => {
+    setupWebpackProject({
+      'webpack.config.js': `
+const Plugin = require(${rootPathAsLiteral});
+module.exports = {
+  entry: './src/index.mjs',
+  target: 'node',
+  plugins: [new Plugin()]
+};`,
+      'src/index.mjs': '',
+    });
+    execWebpack();
+    const { status, stderr } = execWebpack();
+    expect(status).toBeGreaterThan(0);
+    expect(stderr).toIncludeMultiple(['Error', `'.mjs' files`]);
   });
 });

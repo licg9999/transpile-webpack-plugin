@@ -1,4 +1,5 @@
 import { clone } from 'lodash';
+import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { validate } from 'schema-utils';
@@ -6,6 +7,7 @@ import { Compiler, Dependency, ExternalModule, Module, NormalModule, sources } f
 import ModuleProfile from 'webpack/lib/ModuleProfile';
 import { commonDirSync } from './commonDir';
 import {
+  forceDisableOutputModule,
   forceDisableSplitChunks,
   forceSetLibraryType,
   throwErrIfOutputPathNotSpecified,
@@ -55,6 +57,10 @@ export class TranspileWebpackPlugin {
   apply(compiler: Compiler) {
     const { exclude, hoistNodeModules } = this.options;
 
+    forceDisableSplitChunks(compiler.options);
+    forceSetLibraryType(compiler.options, moduleType);
+    forceDisableOutputModule(compiler.options);
+
     const isPathExcluded = createConditionTest(exclude);
     const isPathInNodeModules = createConditionTest(reNodeModules);
 
@@ -63,14 +69,13 @@ export class TranspileWebpackPlugin {
     compiler.hooks.environment.tap({ name: pluginName, stage: stageVeryEarly }, () => {
       throwErrIfOutputPathNotSpecified(compiler.options);
       throwErrIfTargetNotSupported(compiler.options);
-      forceDisableSplitChunks(compiler.options);
-      forceSetLibraryType(compiler.options, moduleType);
       unifyDependencyResolving(compiler.options, moduleType.split('-')[0]);
     });
 
     compiler.hooks.finishMake.tapPromise(pluginName, async (compilation) => {
       const outputPath = compiler.options.output.path!;
       const outputPathOfNodeModules = path.resolve(outputPath, baseNodeModules);
+      const context = compiler.options.context!;
       const resolveExtensions = compiler.options.resolve.extensions ?? [];
 
       const entryDeps = new Map<string, Dependency>();
@@ -88,7 +93,16 @@ export class TranspileWebpackPlugin {
       );
 
       if (entryResourcePathsWoNodeModules.length === 0) {
-        throw new Error(`No entry is found ouside 'node_modules'`);
+        throw new Error(`No entry is found outside 'node_modules'`);
+      }
+
+      const entryEsmResourcePaths = entryResourcePaths.filter((p) => p.endsWith('.mjs'));
+      if (entryEsmResourcePaths.length > 0) {
+        throw new Error(
+          `ES module is not supported yet. Found '.mjs' files:${os.EOL}` +
+            entryEsmResourcePaths.map((p) => '  ' + path.relative(context, p)).join(os.EOL) +
+            `${os.EOL}----`
+        );
       }
 
       const commonDir = commonDirSync(entryResourcePaths);
