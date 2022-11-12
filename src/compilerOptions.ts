@@ -2,6 +2,18 @@ import { pick, set } from 'lodash';
 import { pluginName } from './constants';
 import { CompilerOptions } from './types';
 
+export function forceDisableSplitChunks(compilerOptions: CompilerOptions): void {
+  set(compilerOptions, 'optimization.splitChunks', false);
+}
+
+export function forceSetLibraryType(compilerOptions: CompilerOptions, libraryType: string): void {
+  set(compilerOptions, 'output.library.type', libraryType);
+}
+
+export function forceDisableOutputModule(compilerOptions: CompilerOptions): void {
+  set(compilerOptions, 'experiments.outputModule', false);
+}
+
 export function throwErrIfOutputPathNotSpecified(compilerOptions: CompilerOptions): void {
   const { output } = compilerOptions;
   if (!output.path) throw new Error(`The output.path in webpack config is not specified`);
@@ -20,14 +32,6 @@ export function throwErrIfTargetNotSupported(compilerOptions: CompilerOptions): 
         `when using plugin '${pluginName}' (please use a node-compatible target)`
     );
   }
-}
-
-export function forceDisableSplitChunks(compilerOptions: CompilerOptions): void {
-  set(compilerOptions, 'optimization.splitChunks', false);
-}
-
-export function forceSetLibraryType(compilerOptions: CompilerOptions, libraryType: string): void {
-  set(compilerOptions, 'output.library.type', libraryType);
 }
 
 export function unifyDependencyResolving(compilerOptions: CompilerOptions, wantedType: string) {
