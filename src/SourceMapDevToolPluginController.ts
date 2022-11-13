@@ -1,5 +1,5 @@
-import { Compiler, EvalSourceMapDevToolPlugin, SourceMapDevToolPlugin } from 'webpack';
 import { pluginName, stageVeryEarly } from './constants';
+import { Compiler, EvalSourceMapDevToolPlugin, SourceMapDevToolPlugin } from './peers/webpack';
 import { CompilerOptions, SourceMapDevToolPluginOptions } from './types';
 
 export class SourceMapDevToolPluginController {

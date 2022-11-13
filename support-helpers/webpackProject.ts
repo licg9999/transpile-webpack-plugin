@@ -1,3 +1,5 @@
+import { gray } from 'colorette';
+import crossSpawn from 'cross-spawn';
 import glob from 'glob';
 import { kebabCase } from 'lodash';
 import fs from 'node:fs';
@@ -10,7 +12,6 @@ import {
   webpackProjectParentDirName,
 } from './constants';
 import { logStdout } from './logging';
-import { gray } from 'colorette';
 
 export function setupWebpackProject(
   files: Record<string, string> & { [webpackConfigDefaultFileName]: string }
@@ -41,6 +42,8 @@ export function setupWebpackProject(
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, fileContent, encodingText);
   }
+
+  crossSpawn.sync('npm', ['i'], { encoding: encodingText });
 
   logStdout('> did setup webpack project in:', gray(path.relative(rootPath, projectPath)));
 }
