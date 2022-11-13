@@ -4,7 +4,6 @@ import { encodingText } from './constants';
 
 export function execWebpack(args: string[] = []): SpawnSyncReturns<string> {
   return crossSpawn.sync('npx', ['webpack', ...args], {
-    stdio: 'pipe',
     encoding: encodingText,
   });
 }

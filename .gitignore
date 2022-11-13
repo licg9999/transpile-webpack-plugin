@@ -5,6 +5,7 @@ coverage
 __projects__
 
 lib
+!src/**/lib
 
 *.log
 

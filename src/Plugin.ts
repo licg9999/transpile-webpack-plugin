@@ -3,8 +3,6 @@ import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { validate } from 'schema-utils';
-import { Compiler, Dependency, ExternalModule, Module, NormalModule, sources } from 'webpack';
-import ModuleProfile from 'webpack/lib/ModuleProfile';
 import { commonDirSync } from './commonDir';
 import {
   forceDisableOutputModule,
@@ -25,6 +23,15 @@ import {
   stageVeryEarly,
 } from './constants';
 import optionsSchema from './optionsSchema.json';
+import {
+  Compiler,
+  Dependency,
+  ExternalModule,
+  Module,
+  NormalModule,
+  sources,
+} from './peers/webpack';
+import ModuleProfile from './peers/webpack/lib/ModuleProfile';
 import { SourceMapDevToolPluginController } from './SourceMapDevToolPluginController';
 import { walkDependencies, walkDependenciesSync } from './walkDependencies';
 

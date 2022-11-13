@@ -1,4 +1,4 @@
-import { Dependency, Module } from 'webpack';
+import type { Dependency, Module } from 'webpack';
 
 export function walkDependenciesSync(
   m: Module,
