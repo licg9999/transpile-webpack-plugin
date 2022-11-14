@@ -13,7 +13,8 @@ const Plugin = require(${rootPathAsLiteral});
 module.exports = {
   ${boolToText(validOpts.target, `target: 'node',`, `target: 'webworker',`)}
   plugins: [new Plugin()]
-};`,
+};
+`,
     });
   }
 
@@ -33,7 +34,11 @@ module.exports = {
 });
 
 describe('validates plugin options', () => {
-  function setup(validOpts: { exclude?: boolean; hoistNodeModules?: boolean }) {
+  function setup(validOpts: {
+    exclude?: boolean;
+    hoistNodeModules?: boolean;
+    longestCommonDir?: boolean;
+  }) {
     setupWebpackProject({
       'webpack.config.js': `
 const Plugin = require(${rootPathAsLiteral});
@@ -43,9 +48,15 @@ module.exports = {
     new Plugin({
       ${boolToText(validOpts.exclude, `exclude: /bower_components/,`, `exclude: false,`)}
       ${boolToText(validOpts.hoistNodeModules, `hoistNodeModules: false,`, `hoistNodeModules: 0,`)}
+      ${boolToText(
+        validOpts.longestCommonDir,
+        `longestCommonDir: __dirname,`,
+        `longestCommonDir: 0,`
+      )}
     })
   ]
-};`,
+};
+`,
     });
   }
 
@@ -62,6 +73,13 @@ module.exports = {
     expect(status).toBeGreaterThan(0);
     expect(stderr).toIncludeMultiple(['Invalid', 'hoistNodeModules']);
   });
+
+  it('throws error if longestCommonDir not valid', () => {
+    setup({ longestCommonDir: false });
+    const { status, stderr } = execWebpack();
+    expect(status).toBeGreaterThan(0);
+    expect(stderr).toIncludeMultiple(['Invalid', 'longestCommonDir']);
+  });
 });
 
 describe('validates entries', () => {
@@ -73,7 +91,8 @@ module.exports = {
   entry: require.resolve('lodash'),
   target: 'node',
   plugins: [new Plugin()]
-};`,
+};
+`,
     });
     execWebpack();
     const { status, stderr } = execWebpack();
@@ -89,12 +108,13 @@ module.exports = {
   entry: './src/index.mjs',
   target: 'node',
   plugins: [new Plugin()]
-};`,
+};
+`,
       'src/index.mjs': '',
     });
     execWebpack();
     const { status, stderr } = execWebpack();
     expect(status).toBeGreaterThan(0);
-    expect(stderr).toIncludeMultiple(['Error', `'.mjs' files`]);
+    expect(stderr).toIncludeMultiple(['Error', 'Outputting ES modules', `'.mjs' files`]);
   });
 });
