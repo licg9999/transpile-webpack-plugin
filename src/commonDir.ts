@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export function longestCommonPrefix(strs: string[]): string {
+function longestCommonPrefix(strs: string[]): string {
   if (!strs.length) return '';
 
   let k = strs[0].length;
@@ -16,12 +16,43 @@ export function longestCommonPrefix(strs: string[]): string {
   return strs[0].substring(0, k);
 }
 
-export function commonDirSync(filePaths: string[]): string {
-  const prefix = longestCommonPrefix(filePaths.map(path.normalize));
+function isDir(p: string): boolean {
   try {
-    if (!fs.statSync(prefix).isDirectory()) throw 0;
-    return prefix;
+    if (!fs.statSync(p).isDirectory()) throw 0;
+    return true;
   } catch {
-    return path.dirname(prefix);
+    return false;
   }
+}
+
+function normalizePath(p: string, opts: { context?: string }): string {
+  return opts.context ? path.resolve(opts.context, p) : path.normalize(p);
+}
+
+export function commonDirSync(
+  filePaths: string[],
+  opts: { context?: string; longestCommonDir?: string }
+): string {
+  let prefix = longestCommonPrefix(filePaths.map((p) => normalizePath(p, opts)));
+
+  if (!isDir(prefix)) {
+    prefix = path.dirname(prefix);
+    if (!isDir(prefix)) {
+      throw new Error('No valid common dir is figured out');
+    }
+  }
+
+  if (opts.longestCommonDir) {
+    const finalLongestCommonDir = normalizePath(opts.longestCommonDir, opts);
+
+    if (!isDir(finalLongestCommonDir)) {
+      throw new Error(`The longestCommonDir doesn't exist`);
+    }
+
+    if (prefix.startsWith(finalLongestCommonDir)) {
+      prefix = finalLongestCommonDir;
+    }
+  }
+
+  return prefix;
 }

@@ -42,6 +42,7 @@ export type TranspileWebpackPluginOptions = Partial<TranspileWebpackPluginIntern
 export interface TranspileWebpackPluginInternalOptions {
   exclude: Condition;
   hoistNodeModules: boolean;
+  longestCommonDir?: string;
 }
 
 export class TranspileWebpackPlugin {
@@ -55,6 +56,7 @@ export class TranspileWebpackPlugin {
     });
 
     this.options = {
+      ...options,
       exclude: options.exclude ?? [],
       hoistNodeModules: options.hoistNodeModules ?? true,
     };
@@ -62,7 +64,7 @@ export class TranspileWebpackPlugin {
   }
 
   apply(compiler: Compiler) {
-    const { exclude, hoistNodeModules } = this.options;
+    const { exclude, hoistNodeModules, longestCommonDir } = this.options;
 
     forceDisableSplitChunks(compiler.options);
     forceSetLibraryType(compiler.options, moduleType);
@@ -106,14 +108,20 @@ export class TranspileWebpackPlugin {
       const entryEsmResourcePaths = entryResourcePaths.filter((p) => p.endsWith('.mjs'));
       if (entryEsmResourcePaths.length > 0) {
         throw new Error(
-          `ES module is not supported yet. Found '.mjs' files:${os.EOL}` +
+          `Outputting ES modules is not supported yet. Found '.mjs' files:${os.EOL}` +
             entryEsmResourcePaths.map((p) => '  ' + path.relative(context, p)).join(os.EOL) +
             `${os.EOL}----`
         );
       }
 
-      const commonDir = commonDirSync(entryResourcePaths);
-      const commonDirWoNodeModules = commonDirSync(entryResourcePathsWoNodeModules);
+      const commonDir = commonDirSync(entryResourcePaths, {
+        context,
+        longestCommonDir,
+      });
+      const commonDirWoNodeModules = commonDirSync(entryResourcePathsWoNodeModules, {
+        context,
+        longestCommonDir,
+      });
       for (const entryDep of entryDeps.values()) {
         await makeExtDepsRecursively(entryDep);
       }

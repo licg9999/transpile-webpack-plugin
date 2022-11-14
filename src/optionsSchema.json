@@ -6,6 +6,9 @@
     },
     "hoistNodeModules": {
       "type": "boolean"
+    },
+    "longestCommonDir": {
+      "type": "string"
     }
   },
   "additionalProperties": false,
