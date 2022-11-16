@@ -105,11 +105,13 @@ export class TranspileWebpackPlugin {
         throw new Error(`No entry is found outside 'node_modules'`);
       }
 
-      const entryEsmResourcePaths = entryResourcePaths.filter((p) => p.endsWith('.mjs'));
-      if (entryEsmResourcePaths.length > 0) {
+      const entryResourcePathsOutputtingEsm = entryResourcePaths.filter((p) => p.endsWith('.mjs'));
+      if (entryResourcePathsOutputtingEsm.length > 0) {
         throw new Error(
           `Outputting ES modules is not supported yet. Found '.mjs' files:${os.EOL}` +
-            entryEsmResourcePaths.map((p) => '  ' + path.relative(context, p)).join(os.EOL) +
+            entryResourcePathsOutputtingEsm
+              .map((p) => '  ' + path.relative(context, p))
+              .join(os.EOL) +
             `${os.EOL}----`
         );
       }

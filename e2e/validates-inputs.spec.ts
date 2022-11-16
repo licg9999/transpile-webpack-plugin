@@ -94,7 +94,6 @@ module.exports = {
 };
 `,
     });
-    execWebpack();
     const { status, stderr } = execWebpack();
     expect(status).toBeGreaterThan(0);
     expect(stderr).toIncludeMultiple(['Error', 'No entry', `outside 'node_modules'`]);
@@ -112,7 +111,6 @@ module.exports = {
 `,
       'src/index.mjs': '',
     });
-    execWebpack();
     const { status, stderr } = execWebpack();
     expect(status).toBeGreaterThan(0);
     expect(stderr).toIncludeMultiple(['Error', 'Outputting ES modules', `'.mjs' files`]);
