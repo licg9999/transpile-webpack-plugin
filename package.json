@@ -21,7 +21,7 @@
     "e2e": "jest e2e"
   },
   "peerDependencies": {
-    "webpack": "^5"
+    "webpack": "^5.61.0"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.1.0",
@@ -31,6 +31,7 @@
     "@types/lodash": "^4.14.186",
     "@types/node": "^18.11.9",
     "@types/resolve": "^1.20.2",
+    "@types/uuid": "^8.3.4",
     "colorette": "^2.0.19",
     "cross-spawn": "^7.0.3",
     "glob": "^8.0.3",
@@ -38,7 +39,8 @@
     "jest-extended": "^3.1.0",
     "prettier": "^2.7.1",
     "ts-jest": "^28.0.8",
-    "typescript": "^4.8.4"
+    "typescript": "^4.8.4",
+    "uuid": "^8.3.2"
   },
   "dependencies": {
     "lodash": "^4.17.21",

@@ -8,16 +8,20 @@ on:
 
 jobs:
   main:
-    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
       matrix:
         os: [ubuntu-20.04, windows-2019]
+        node-version: [18, 16]
+        dep-ver-webpack: ['^5', '5.61.0']
+    runs-on: ${{ matrix.os }}
+    env:
+      E2E_DEP_VER_WEBPACK: ${{ matrix.dep-ver-webpack }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: ${{ matrix.node-version }}
       - run: npm i
       - run: npm run build
       - run: npm run e2e
