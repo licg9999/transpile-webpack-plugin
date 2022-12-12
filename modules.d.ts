@@ -1,1 +1,13 @@
-/// <reference types="jest-extended" />
+import 'jest-extended';
+import type { Module, ModuleGraphConnection } from 'webpack';
+
+declare module 'webpack' {
+  class ModuleGraphModule {
+    incomingConnections: Set<ModuleGraphConnection>;
+    outgoingConnections: Set<ModuleGraphConnection>;
+  }
+
+  class ModuleGraph {
+    _getModuleGraphModule(module: Module): ModuleGraphModule;
+  }
+}

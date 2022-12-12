@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 
+const { program } = require('commander');
 const { name: packageName } = require('../package.json');
 const crossSpawn = require('cross-spawn');
 
-const [, , section] = process.argv;
+program.option('-s,--section <string>');
+program.parse();
 
-process.env.NODE_DEBUG = `${packageName}:${section ?? '*'}`;
+process.env.NODE_DEBUG = `${packageName}:${program.section ?? '*'}`;
 
-crossSpawn.sync('npm', ['run', 'e2e'], { stdio: 'inherit' });
+const moreArgs = program.args.length ? ['--', ...program.args] : [];
+
+crossSpawn.sync('npm', ['run', 'e2e', ...moreArgs], { stdio: 'inherit' });
