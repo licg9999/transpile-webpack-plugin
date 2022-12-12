@@ -1,6 +1,7 @@
 import { pick, set } from 'lodash';
 import { pluginName } from './constants';
 import { CompilerOptions } from './types';
+import { HotModuleReplacementPlugin } from './peers/webpack';
 
 export function forceDisableSplitChunks(compilerOptions: CompilerOptions): void {
   set(compilerOptions, 'optimization.splitChunks', false);
@@ -10,8 +11,13 @@ export function forceSetLibraryType(compilerOptions: CompilerOptions, libraryTyp
   set(compilerOptions, 'output.library.type', libraryType);
 }
 
-export function forceDisableOutputModule(compilerOptions: CompilerOptions): void {
+export function forceDisableOutputtingEsm(compilerOptions: CompilerOptions): void {
   set(compilerOptions, 'experiments.outputModule', false);
+}
+
+export function forceEnableNodeGlobals(compilerOptions: CompilerOptions): void {
+  set(compilerOptions, 'node.__dirname', false);
+  set(compilerOptions, 'node.__filename', false);
 }
 
 export function throwErrIfOutputPathNotSpecified(compilerOptions: CompilerOptions): void {
@@ -31,6 +37,18 @@ export function throwErrIfTargetNotSupported(compilerOptions: CompilerOptions): 
       `The target '${target}' in webpack config is not supported ` +
         `when using plugin '${pluginName}' (please use a node-compatible target)`
     );
+  }
+}
+
+export function throwErrIfHotModuleReplacementEnabled(compilerOptions: CompilerOptions): void {
+  const { plugins } = compilerOptions;
+  for (const p of plugins) {
+    if (
+      p instanceof HotModuleReplacementPlugin ||
+      p.constructor.name === 'HotModuleReplacementPlugin'
+    ) {
+      throw new Error(`Hot module replacement is not supported when using plugin '${pluginName}'`);
+    }
   }
 }
 

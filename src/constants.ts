@@ -8,6 +8,8 @@ export const { name: packageName } = readJsonSync<{ name: string }>(
 export const pluginName = startCase(packageName);
 
 export const reNodeModules = /[\\/]node_modules[\\/]/;
+export const reEsmFile = /\.mjs$/;
+
 export const baseNodeModules = 'node_modules';
 
 export const moduleType = 'commonjs-module';

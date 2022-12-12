@@ -31,7 +31,7 @@ function normalizePath(p: string, opts: { context?: string }): string {
 
 export function commonDirSync(
   filePaths: string[],
-  opts: { context?: string; longestCommonDir?: string }
+  opts: { context?: string; longestCommonDir?: string } = {}
 ): string {
   let prefix = longestCommonPrefix(filePaths.map((p) => normalizePath(p, opts)));
 
@@ -46,7 +46,7 @@ export function commonDirSync(
     const finalLongestCommonDir = normalizePath(opts.longestCommonDir, opts);
 
     if (!isDir(finalLongestCommonDir)) {
-      throw new Error(`The longestCommonDir doesn't exist`);
+      throw new Error(`The longestCommonDir '${opts.longestCommonDir}' doesn't exist`);
     }
 
     if (prefix.startsWith(finalLongestCommonDir)) {

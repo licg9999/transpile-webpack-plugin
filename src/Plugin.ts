@@ -5,9 +5,11 @@ import { promisify } from 'node:util';
 import { validate } from 'schema-utils';
 import { commonDirSync } from './commonDir';
 import {
-  forceDisableOutputModule,
+  forceDisableOutputtingEsm,
   forceDisableSplitChunks,
+  forceEnableNodeGlobals,
   forceSetLibraryType,
+  throwErrIfHotModuleReplacementEnabled,
   throwErrIfOutputPathNotSpecified,
   throwErrIfTargetNotSupported,
   unifyDependencyResolving,
@@ -18,6 +20,7 @@ import {
   extJson,
   moduleType,
   pluginName,
+  reEsmFile,
   reNodeModules,
   sourceTypeAsset,
   stageVeryEarly,
@@ -68,20 +71,24 @@ export class TranspileWebpackPlugin {
 
     forceDisableSplitChunks(compiler.options);
     forceSetLibraryType(compiler.options, moduleType);
-    forceDisableOutputModule(compiler.options);
+    forceDisableOutputtingEsm(compiler.options);
+    forceEnableNodeGlobals(compiler.options);
 
     const isPathExcluded = createConditionTest(exclude);
     const isPathInNodeModules = createConditionTest(reNodeModules);
+    const isPathEsmFile = createConditionTest(reEsmFile);
 
     this.sourceMapDevToolPluginController.apply(compiler);
 
     compiler.hooks.environment.tap({ name: pluginName, stage: stageVeryEarly }, () => {
       throwErrIfOutputPathNotSpecified(compiler.options);
       throwErrIfTargetNotSupported(compiler.options);
+      throwErrIfHotModuleReplacementEnabled(compiler.options);
       unifyDependencyResolving(compiler.options, moduleType.split('-')[0]);
     });
 
     compiler.hooks.finishMake.tapPromise(pluginName, async (compilation) => {
+      debugger;
       const outputPath = compiler.options.output.path!;
       const outputPathOfNodeModules = path.resolve(outputPath, baseNodeModules);
       const context = compiler.options.context!;
@@ -105,7 +112,7 @@ export class TranspileWebpackPlugin {
         throw new Error(`No entry is found outside 'node_modules'`);
       }
 
-      const entryResourcePathsOutputtingEsm = entryResourcePaths.filter((p) => p.endsWith('.mjs'));
+      const entryResourcePathsOutputtingEsm = entryResourcePaths.filter(isPathEsmFile);
       if (entryResourcePathsOutputtingEsm.length > 0) {
         throw new Error(
           `Outputting ES modules is not supported yet. Found '.mjs' files:${os.EOL}` +
@@ -145,8 +152,13 @@ export class TranspileWebpackPlugin {
         if (!entryMod || touchedMods.has(entryMod)) return;
 
         if (entryMod instanceof NormalModule) {
+          const isEntryResourceLocalFile = path.isAbsolute(entryMod.resource);
           const entryResourcePath = entryMod.resourceResolveData?.path;
-          if (typeof entryResourcePath === 'string' && !isPathExcluded(entryResourcePath)) {
+          if (
+            isEntryResourceLocalFile &&
+            typeof entryResourcePath === 'string' &&
+            !isPathExcluded(entryResourcePath)
+          ) {
             // Collects the dependency closest to root as the entry dependency.
             if (!entryDeps.has(entryResourcePath)) {
               entryDeps.set(entryResourcePath, entryDep);
@@ -219,21 +231,38 @@ export class TranspileWebpackPlugin {
 
         const extModCandidate = new ExternalModule(request, moduleType, request);
         let extMod = compilation.getModule(extModCandidate);
+        let doesExtModNeedBuild = false;
         if (!(extMod instanceof ExternalModule)) {
-          compilation.moduleGraph.setProfile(extModCandidate, new ModuleProfile());
-          await promisify(compilation.addModule).call(compilation, extModCandidate);
-          extMod = extModCandidate;
+          if (compilation.profile) {
+            compilation.moduleGraph.setProfile(extModCandidate, new ModuleProfile());
+          }
+          const extModReturned = await promisify(compilation.addModule).call(
+            compilation,
+            extModCandidate
+          );
+          // Uses extModReturned prior to extModCandidate in case some cached module
+          // is used in compilation.addModule.
+          extMod = extModReturned ?? extModCandidate;
+          doesExtModNeedBuild = true;
         }
 
-        // Clones the child dep to make an external dep for connecting the external mod so to
-        // preserve the current connection of the child dep for making more potential entries.
+        // Clones child dep to make external dep for connecting external mod so that
+        // connections of child dep get preserved for making entries.
         const extDep = clone(childDep);
         childDependencies[childDepIndex] = extDep;
+
+        const childConnection = compilation.moduleGraph.getConnection(childDep);
+        if (childConnection) {
+          const entryMgm = compilation.moduleGraph._getModuleGraphModule(entryMod);
+          entryMgm.outgoingConnections.delete(childConnection);
+        }
 
         compilation.moduleGraph.setResolvedModule(entryMod, extDep, extMod);
         compilation.moduleGraph.setIssuerIfUnset(extMod, entryMod);
 
-        await promisify(compilation.buildModule).call(compilation, extMod);
+        if (doesExtModNeedBuild) {
+          await promisify(compilation.buildModule).call(compilation, extMod);
+        }
       }
 
       function evaluateBundlePath(resourcePath: string): string {
@@ -261,20 +290,20 @@ export class TranspileWebpackPlugin {
 
       function makeEntriesAndCollectEntryExtentions(): void {
         for (const [entryResourcePath, entryDep] of entryDeps) {
-          const bundleRelPath = evaluateBundleRelPath(entryResourcePath);
-          const bundleRelPathParsed = path.parse(bundleRelPath);
+          const entryBundleRelPath = evaluateBundleRelPath(entryResourcePath);
+          const entryBundleRelPathParsed = path.parse(entryBundleRelPath);
 
-          if (bundleRelPathParsed.ext === extJson) {
-            emitJson(bundleRelPath, entryDep);
+          if (entryBundleRelPathParsed.ext === extJson) {
+            emitJson(entryBundleRelPath, entryResourcePath, entryDep);
           } else {
-            assignEntry(bundleRelPath, entryDep);
+            assignEntry(entryBundleRelPath, entryDep);
 
-            if (resolveExtensions.includes(bundleRelPathParsed.ext)) {
+            if (resolveExtensions.includes(entryBundleRelPathParsed.ext)) {
               assignEntry(
                 path.format({
-                  ...bundleRelPathParsed,
+                  ...entryBundleRelPathParsed,
                   ext: '',
-                  base: bundleRelPathParsed.name,
+                  base: entryBundleRelPathParsed.name,
                 }),
                 entryDep
               );
@@ -283,19 +312,28 @@ export class TranspileWebpackPlugin {
             const entryMod = compilation.moduleGraph.getModule(entryDep);
             if (entryMod) {
               if (!entryMod.getSourceTypes().has(sourceTypeAsset)) {
-                entryExtentions.add(bundleRelPathParsed.ext);
+                entryExtentions.add(entryBundleRelPathParsed.ext);
               }
             }
           }
         }
       }
 
-      function emitJson(entryBundleRelPath: string, entryDep: Dependency): void {
+      function emitJson(
+        entryBundleRelPath: string,
+        entryResourcePath: string,
+        entryDep: Dependency
+      ): void {
         const entryMod = compilation.moduleGraph.getModule(entryDep);
         if (entryMod instanceof NormalModule) {
-          const jsonData: object = entryMod.buildInfo.jsonData?.get() ?? {};
+          const { jsonData } = entryMod.buildInfo;
+          if (!jsonData) {
+            throw new Error(
+              `File '${path.relative(context, entryResourcePath)}' is not type of JSON`
+            );
+          }
           entryMod.buildInfo.assets = {
-            [entryBundleRelPath]: new RawSource(JSON.stringify(jsonData)),
+            [entryBundleRelPath]: new RawSource(JSON.stringify(jsonData.get())),
           };
         }
       }
