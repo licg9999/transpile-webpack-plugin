@@ -1,6 +1,7 @@
-import { gray } from 'colorette';
+import { blueBright, dim } from 'colorette';
 import crossSpawn from 'cross-spawn';
 import glob from 'glob';
+import { merge } from 'lodash';
 import fs from 'node:fs';
 import path from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,6 +10,7 @@ import {
   rootPath,
   webpackConfigDefaultFileName,
   webpackProjectMustHaveFiles,
+  webpackProjectMustHavePackageJson,
   webpackProjectParentDirName,
 } from './constants';
 import { logStdout } from './logging';
@@ -24,9 +26,6 @@ export function setupWebpackProject(
 
   const projectPath = path.join(path.dirname(testPath), webpackProjectParentDirName, uuidv4());
 
-  try {
-    fs.rmSync(projectPath, { recursive: true });
-  } catch {}
   fs.mkdirSync(projectPath, { recursive: true });
 
   process.chdir(projectPath);
@@ -43,12 +42,13 @@ export function setupWebpackProject(
     }
   }
 
-  crossSpawn.sync('npm', ['i'], { encoding: encodingText });
+  const { status } = crossSpawn.sync('npm', ['i'], { encoding: encodingText, stdio: 'ignore' });
+  expect(status).toBe(0);
 
   logStdout(
-    `Did setup webpack project in ${gray(
+    `Did setup webpack project in: ${blueBright(
       path.relative(rootPath, projectPath)
-    )}, with package.json ${gray(JSON.stringify(JSON.parse(packageJsonText), null, 0))}`
+    )}, with package.json ${dim(JSON.stringify(JSON.parse(packageJsonText), null, 0))}`
   );
 }
 
@@ -60,7 +60,11 @@ export function cleanAllWebpackProjects() {
   })) {
     try {
       fs.rmSync(p, { recursive: true });
-      logStdout(`Did clean webpack projects under ${gray(path.relative(rootPath, p))}`);
+      logStdout(`Did clean webpack projects under: ${blueBright(path.relative(rootPath, p))}`);
     } catch {}
   }
+}
+
+export function evaluateMustHavePackageJsonText(packageJsonOverride: object): string {
+  return JSON.stringify(merge({}, webpackProjectMustHavePackageJson, packageJsonOverride));
 }

@@ -1,4 +1,4 @@
-import { gray } from 'colorette';
+import { dim, magentaBright } from 'colorette';
 import os from 'node:os';
 import path from 'node:path';
 import tty from 'node:tty';
@@ -11,7 +11,7 @@ export function createLog(ws: tty.WriteStream): (...args: unknown[]) => void {
   return (...args) => {
     const prefix = evaluateLogPrefix();
     if (prefix) {
-      args.unshift(gray(`[${prefix}]:`));
+      args.unshift(prefix);
     }
     ws.write(
       args.map((o) => (typeof o === 'string' ? o : inspect(o, inspectOpts))).join(' ') + os.EOL
@@ -27,18 +27,28 @@ export function createE2eDebuglogByFilePath(filePath: string): DebugLoggerFuncti
   return (msg, ...params) => {
     const prefix = evaluateLogPrefix();
     if (prefix) {
-      msg = `${gray(`[${prefix}]:`)} ${msg}`;
+      msg = `${prefix} ${msg}`;
     }
     fn(msg, ...params);
   };
 }
 
-function evaluateLogPrefix(): string | undefined {
+function evaluateLogPrefix(): string | false {
   const { currentTestName, testPath } = expect.getState();
-  if (currentTestName) {
-    return currentTestName;
-  }
+
+  const prefixParts = [];
+
   if (testPath) {
-    return path.relative(rootPath, testPath);
+    prefixParts.push(path.relative(rootPath, testPath));
   }
+
+  if (currentTestName) {
+    prefixParts.push(currentTestName);
+  }
+
+  if (!prefixParts.length) {
+    return false;
+  }
+
+  return dim(magentaBright(`[${prefixParts.join(' - ')}]:`));
 }
