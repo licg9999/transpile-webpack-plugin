@@ -58,7 +58,7 @@ export class SourceMapDevToolPluginController {
     compilerOptions.devtool = this.oldDevtool;
   }
 
-  setExtensionsHavingSourceMaps(extensions: Iterable<string>): void {
+  setExtensionsToHaveSourceMaps(extensions: Iterable<string>): void {
     if (this.sourceMapDevToolPluginOptions) {
       // Aligns to:
       // https://github.com/webpack/webpack/blob/6fa6e30254f0eb2673a3525739da1df0a5f51791/lib/SourceMapDevToolPlugin.js#L155
