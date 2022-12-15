@@ -36,6 +36,7 @@ import {
 } from './peers/webpack';
 import ModuleProfile from './peers/webpack/lib/ModuleProfile';
 import { SourceMapDevToolPluginController } from './SourceMapDevToolPluginController';
+import { TerserWebpackPluginController } from './TerserWebpackPluginController';
 import { walkDependencies, walkDependenciesSync } from './walkDependencies';
 
 const { RawSource } = sources;
@@ -51,6 +52,7 @@ export interface TranspileWebpackPluginInternalOptions {
 export class TranspileWebpackPlugin {
   options: TranspileWebpackPluginInternalOptions;
   sourceMapDevToolPluginController: SourceMapDevToolPluginController;
+  terserWebpackPluginController: TerserWebpackPluginController;
 
   constructor(options: TranspileWebpackPluginOptions = {}) {
     validate(optionsSchema as object, options, {
@@ -64,6 +66,7 @@ export class TranspileWebpackPlugin {
       hoistNodeModules: options.hoistNodeModules ?? true,
     };
     this.sourceMapDevToolPluginController = new SourceMapDevToolPluginController();
+    this.terserWebpackPluginController = new TerserWebpackPluginController();
   }
 
   apply(compiler: Compiler) {
@@ -79,6 +82,7 @@ export class TranspileWebpackPlugin {
     const isPathEsmFile = createConditionTest(reEsmFile);
 
     this.sourceMapDevToolPluginController.apply(compiler);
+    this.terserWebpackPluginController.apply(compiler);
 
     compiler.hooks.environment.tap({ name: pluginName, stage: stageVeryEarly }, () => {
       throwErrIfOutputPathNotSpecified(compiler.options);
@@ -137,11 +141,14 @@ export class TranspileWebpackPlugin {
       touchedMods.clear();
 
       const entries = new Map() as typeof compilation.entries;
-      const entryExtentions = new Set<string>();
+      const entryExtentionsToHaveSourceMaps = new Set<string>();
       makeEntriesAndCollectEntryExtentions();
       entryDeps.clear();
-      this.sourceMapDevToolPluginController.setExtensionsHavingSourceMaps(entryExtentions);
-      entryExtentions.clear();
+      this.sourceMapDevToolPluginController.setExtensionsToHaveSourceMaps(
+        entryExtentionsToHaveSourceMaps
+      );
+      entryExtentionsToHaveSourceMaps.clear();
+      this.terserWebpackPluginController.setNamesToBeMinimized(entries.keys());
       compilation.entries.clear();
       compilation.entries = entries;
 
@@ -312,7 +319,7 @@ export class TranspileWebpackPlugin {
             const entryMod = compilation.moduleGraph.getModule(entryDep);
             if (entryMod) {
               if (!entryMod.getSourceTypes().has(sourceTypeAsset)) {
-                entryExtentions.add(entryBundleRelPathParsed.ext);
+                entryExtentionsToHaveSourceMaps.add(entryBundleRelPathParsed.ext);
               }
             }
           }

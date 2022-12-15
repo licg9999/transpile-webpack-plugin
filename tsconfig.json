@@ -19,5 +19,5 @@
     "target": "es2015"
   },
   "include": ["."],
-  "exclude": ["**/node_modules", "**/coverage", "**/__projects__", "**/lib", "**/.vscode"]
+  "exclude": ["node_modules", "lib", "coverage", "e2e/**/__projects__"]
 }

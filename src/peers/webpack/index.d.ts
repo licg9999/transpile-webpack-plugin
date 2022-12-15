@@ -1,3 +1,3 @@
-import type * as webpack from 'webpack';
+import webpack from 'webpack';
 
 export = webpack;

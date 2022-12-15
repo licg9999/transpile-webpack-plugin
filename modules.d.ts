@@ -1,5 +1,5 @@
 import 'jest-extended';
-import type { Module, ModuleGraphConnection } from 'webpack';
+import { Module, ModuleGraphConnection } from 'webpack';
 
 declare module 'webpack' {
   class ModuleGraphModule {

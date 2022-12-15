@@ -2,6 +2,7 @@ import {
   evaluateMustHavePackageJsonText,
   execNode,
   execWebpack,
+  expectCommonDirToIncludeAllFiles,
   expectCommonDirToIncludeAllFilesAnd,
   expectCommonDirToIncludeSameFilesAnd,
   rootPath,
@@ -123,8 +124,7 @@ console.log(greeting);
     expect(execWebpack().status).toBe(0);
     expectCommonDirToIncludeSameFilesAnd({
       'dist/index.js': (t) => expect(t).not.toInclude('Hi, there!'),
-      'dist/constants.jsonc': (t) =>
-        expect(t).toIncludeMultiple(['__webpack_exports__', 'Hi, there!']),
+      'dist/constants.jsonc': (t) => expect(t).toIncludeMultiple(['module.exports', 'Hi, there!']),
     });
     const { stdout, status } = execNode('dist/index.js');
     expect(status).toBe(0);
@@ -426,4 +426,98 @@ h1 {
       expect(stdout).toInclude('<h1>Hi, there!</h1>');
     }
   );
+});
+
+describe('edge cases on outputting JS file with ext other than .js', () => {
+  for (const devtool of ['source-map', 'inline-source-map']) {
+    it(`works with ${devtool}`, () => {
+      setupWebpackProject({
+        'webpack.config.js': `
+const Plugin = require('${rootPath}');
+module.exports = {
+  ${webpackConfigReusable}
+  entry: './src/index.coffee',
+  devtool: '${devtool}',
+  module: {
+    rules: [
+      {
+        test: /\\.coffee$/,
+        use: 'coffee-loader',
+      }
+    ]
+  },
+  plugins: [new Plugin()],
+};
+`,
+        'src/index.coffee': `
+import { throwErrUnconditional } from './throw.coffee'
+throwErrUnconditional();
+`,
+        'src/throw.coffee': `
+export throwErrUnconditional = () ->
+  console.log('Something before err...')
+  throw new Error('Some error happened')
+`,
+        'package.json': evaluateMustHavePackageJsonText({
+          ['devDependencies']: {
+            ['coffee-loader']: '^4.0.0',
+            ['coffeescript']: '^2.7.0',
+            ['source-map-support']: '^0.5.21',
+          },
+        }),
+      });
+      expect(execWebpack().status).toBe(0);
+      expectCommonDirToIncludeAllFiles(['dist/index.coffee', 'dist/throw.coffee']);
+      const { stdout, stderr, status } = execNode(
+        '-r',
+        'source-map-support/register',
+        'dist/index.coffee'
+      );
+      expect(status).toBeGreaterThan(0);
+      expect(stdout).toInclude('Something before err');
+      expect(stderr).toIncludeMultiple([
+        'Error',
+        'Some error happened',
+        'src/throw.coffee:4',
+        'src/index.coffee:3',
+      ]);
+    });
+  }
+
+  it('works with minimize', () => {
+    setupWebpackProject({
+      'webpack.config.js': `
+const Plugin = require('${rootPath}');
+module.exports = {
+  ${webpackConfigReusable}
+  entry: './src/index.coffee',
+  module: {
+    rules: [
+      {
+        test: /\\.coffee$/,
+        use: 'coffee-loader',
+      }
+    ]
+  },
+  plugins: [new Plugin()],
+};
+`,
+      'src/index.coffee': `
+console.log('Hi, there!');
+`,
+      'package.json': evaluateMustHavePackageJsonText({
+        ['devDependencies']: {
+          ['coffee-loader']: '^4.0.0',
+          ['coffeescript']: '^2.7.0',
+        },
+      }),
+    });
+    expect(execWebpack().status).toBe(0);
+    expectCommonDirToIncludeSameFilesAnd({
+      'dist/index.coffee': (t) => expect(t).not.toIncludeAnyMembers(['/*', '*/']),
+    });
+    const { stdout, status } = execNode('dist/index.coffee');
+    expect(status).toBe(0);
+    expect(stdout).toInclude('Hi, there!');
+  });
 });
