@@ -5,15 +5,23 @@ on:
   push:
     branches:
       - master
+  workflow_call:
 
 jobs:
   main:
     timeout-minutes: 30
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019]
-        node-version: [18, 16]
+        os: [ubuntu-20.04]
+        node-version: [18]
         dep-ver-webpack: ['^5', '5.61.0']
+        include:
+          - os: ubuntu-20.04
+            node-version: 16
+            dep-ver-webpack: '^5'
+          - os: windows-2019
+            node-version: 18
+            dep-ver-webpack: '^5'
     runs-on: ${{ matrix.os }}
     env:
       E2E_DEP_VER_WEBPACK: ${{ matrix.dep-ver-webpack }}

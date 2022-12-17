@@ -1,11 +1,12 @@
 {
   "name": "transpile-webpack-plugin",
-  "version": "0.0.0",
+  "version": "1.0.0-semantic-release",
   "description": "",
-  "author": "licg9999 <licg9999@gmail.com>",
-  "repository": "",
-  "homepage": "",
-  "bugs": "",
+  "keywords": [],
+  "repository": "licg9999/transpile-webpack-plugin",
+  "homepage": "https://github.com/licg9999/transpile-webpack-plugin",
+  "author": "licg <licg9999@gmail.com>",
+  "license": "MIT",
   "engines": {
     "node": ">=16"
   },
@@ -16,7 +17,6 @@
     "modules.d.ts",
     "src"
   ],
-  "license": "MIT",
   "scripts": {
     "build": "tsc --project additional-configs/tsconfig.build.json",
     "watch": "npm run build -- --watch",

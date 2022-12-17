@@ -1,0 +1,25 @@
+on:
+  push:
+    branches:
+      - master
+        beta
+        latest
+
+jobs:
+  e2e:
+    uses: ./.github/workflows/e2e.yml
+  release:
+    needs:
+      - e2e
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm i
+      - run: npm run build
+      - run: npx semantic-release@19
+        env:
+          NPM_TOKEN: ${{secrets.NPM_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
