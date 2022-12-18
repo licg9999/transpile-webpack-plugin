@@ -11,10 +11,6 @@
       "prerelease": "beta"
     },
     {
-      "name": "release",
-      "channel": "latest"
-    },
-    {
       "name": "latest",
       "channel": "latest"
     }
