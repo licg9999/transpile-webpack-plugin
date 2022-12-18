@@ -6,13 +6,13 @@ on:
       - latest
 
 jobs:
-  lint:
-    uses: ./.github/workflows/lint.yml
+  lint-code:
+    uses: ./.github/workflows/lint-code.yml
   e2e:
     uses: ./.github/workflows/e2e.yml
   release:
     needs:
-      - lint
+      - lint-code
       - e2e
     runs-on: ubuntu-20.04
     steps:
