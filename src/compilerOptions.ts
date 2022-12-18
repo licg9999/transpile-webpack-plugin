@@ -1,7 +1,8 @@
 import { pick, set } from 'lodash';
+
 import { pluginName } from './constants';
-import { CompilerOptions } from './types';
 import { HotModuleReplacementPlugin } from './peers/webpack';
+import { CompilerOptions } from './types';
 
 export function forceDisableSplitChunks(compilerOptions: CompilerOptions): void {
   set(compilerOptions, 'optimization.splitChunks', false);
@@ -55,7 +56,7 @@ export function throwErrIfHotModuleReplacementEnabled(compilerOptions: CompilerO
 export function unifyDependencyResolving(compilerOptions: CompilerOptions, wantedType: string) {
   const { byDependency } = compilerOptions.resolve;
   if (!byDependency) return;
-  if (!byDependency.hasOwnProperty(wantedType)) wantedType = 'unknown';
+  if (!Object.prototype.hasOwnProperty.call(byDependency, wantedType)) wantedType = 'unknown';
   const wantedOpts = byDependency[wantedType];
   for (const [type, opts] of Object.entries(byDependency)) {
     if (type !== wantedType) {

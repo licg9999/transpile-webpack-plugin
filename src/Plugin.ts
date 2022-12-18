@@ -1,8 +1,10 @@
-import { clone } from 'lodash';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
+
+import { clone } from 'lodash';
 import { validate } from 'schema-utils';
+
 import { commonDirSync } from './commonDir';
 import {
   forceDisableOutputtingEsm,
@@ -92,7 +94,6 @@ export class TranspileWebpackPlugin {
     });
 
     compiler.hooks.finishMake.tapPromise(pluginName, async (compilation) => {
-      debugger;
       const outputPath = compiler.options.output.path!;
       const outputPathOfNodeModules = path.resolve(outputPath, baseNodeModules);
       const context = compiler.options.context!;

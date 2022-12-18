@@ -62,7 +62,7 @@ module.exports = {
           parse: JSON5.parse,
         }
       }
-    ] 
+    ]
   },
   plugins: [new Plugin()]
 };
@@ -198,7 +198,7 @@ describe('handles asset', () => {
 const Plugin = require('${rootPath}');
 module.exports = {
   ${webpackConfigReusable.replace(
-    /output:\s*\{([^\}]*)\}/s,
+    /output:\s*\{([^}]*)\}/s,
     `output: {
   $1
   publicPath: '/public/',

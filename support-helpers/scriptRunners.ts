@@ -1,8 +1,10 @@
+import { promisify } from 'node:util';
+
 import { ChildProcess, SpawnSyncReturns } from 'child_process';
 import { blueBright, dim } from 'colorette';
 import crossSpawn from 'cross-spawn';
-import { promisify } from 'node:util';
 import treeKill from 'tree-kill';
+
 import { encodingText } from './constants';
 import { createE2eDebuglogByFilePath, logStdout } from './logging';
 

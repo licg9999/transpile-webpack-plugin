@@ -1,7 +1,9 @@
-import glob from 'glob';
-import { clone } from 'lodash';
 import fs from 'node:fs';
 import path from 'node:path';
+
+import glob from 'glob';
+import { clone } from 'lodash';
+
 import { commonDirSync } from '../src/commonDir';
 import { encodingText } from './constants';
 

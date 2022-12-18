@@ -1,4 +1,5 @@
 import { startCase } from 'lodash';
+
 import { readJsonSync } from './readJson';
 
 export const { name: packageName } = readJsonSync<{ name: string }>(
