@@ -24,12 +24,11 @@
     "e2e": "cross-env JEST_TEST_PATH=e2e jest --maxWorkers 1",
     "lint-all": "run-p lint:*",
     "lint:tsc": "tsc",
-    "lint:prettier": "npm run with-env-file-glob -- \"prettier --check \\$FILE_GLOB\"",
-    "lint:eslint": "npm run with-env-file-glob -- \"eslint \\$FILE_GLOB\"",
+    "lint:prettier": "node scripts/cross-dotenv-shell prettier --check FILE_GLOB",
+    "lint:eslint": "node scripts/cross-dotenv-shell eslint FILE_GLOB",
     "fix-all": "run-s fix:*",
-    "fix:prettier": "npm run with-env-file-glob -- \"prettier --write \\$FILE_GLOB\"",
-    "fix:eslint": "npm run with-env-file-glob -- \"eslint --fix \\$FILE_GLOB\"",
-    "with-env-file-glob": "cross-env-shell FILE_GLOB=\"@(src|e2e|additional-configs|support-helpers|scripts)/**/*.@([jt]s?(x)|json)\""
+    "fix:prettier": "node scripts/cross-dotenv-shell prettier --write FILE_GLOB",
+    "fix:eslint": "node scripts/cross-dotenv-shell eslint --fix FILE_GLOB"
   },
   "peerDependencies": {
     "webpack": "^5.61.0"
@@ -55,6 +54,7 @@
     "commander": "^9.4.1",
     "cross-env": "^7.0.3",
     "cross-spawn": "^7.0.3",
+    "dotenv": "^16.0.3",
     "eslint": "^8.30.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-jest": "^27.1.7",
