@@ -1,10 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { blueBright, dim } from 'colorette';
 import crossSpawn from 'cross-spawn';
 import glob from 'glob';
 import { merge } from 'lodash';
-import fs from 'node:fs';
-import path from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
+
 import {
   encodingText,
   rootPath,

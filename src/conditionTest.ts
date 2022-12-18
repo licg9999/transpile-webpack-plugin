@@ -1,4 +1,5 @@
 import { flatten } from 'lodash';
+
 import { MaybeArray } from './types';
 
 export type Condition = MaybeArray<string | RegExp | ConditionTest>;

@@ -1,4 +1,5 @@
 import waitForExpect from 'wait-for-expect';
+
 import {
   cleanAllWebpackProjects,
   createE2eDebuglogByFilePath,

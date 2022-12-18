@@ -1,5 +1,6 @@
 import { flatten } from 'lodash';
 import type { Compiler } from 'webpack';
+
 import { A } from './defaultsSetters';
 import TerserWebpackPlugin from './peers/terser-webpack-plugin';
 import TerserWebpackPluginFromWebpack from './peers/terser-webpack-plugin-from-webpack';

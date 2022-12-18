@@ -1,0 +1,16 @@
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_call:
+
+jobs:
+  main:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm i
+      - run: npm run lint-all

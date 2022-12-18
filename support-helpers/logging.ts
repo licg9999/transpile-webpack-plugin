@@ -1,8 +1,10 @@
-import { dim, magentaBright } from 'colorette';
 import os from 'node:os';
 import path from 'node:path';
 import tty from 'node:tty';
 import { debuglog, DebugLoggerFunction, inspect, InspectOptions } from 'node:util';
+
+import { dim, magentaBright } from 'colorette';
+
 import { packageName } from '../src/constants';
 import { rootPath } from './constants';
 
