@@ -349,11 +349,10 @@ export class TranspileWebpackPlugin {
       function assignEntry(entryBundleRelPath: string, entryDep: Dependency): void {
         const name = entryBundleRelPath;
         const filename = entryBundleRelPath;
-        const library = { type: moduleType };
         entries.set(name, {
           dependencies: [entryDep],
           includeDependencies: [],
-          options: { name, filename, library },
+          options: { name, filename },
         });
       }
     });
