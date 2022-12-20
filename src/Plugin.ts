@@ -19,6 +19,7 @@ import {
 import { Condition, createConditionTest } from './conditionTest';
 import {
   baseNodeModules,
+  extJs,
   extJson,
   moduleType,
   pluginName,
@@ -306,7 +307,10 @@ export class TranspileWebpackPlugin {
           } else {
             assignEntry(entryBundleRelPath, entryDep);
 
-            if (resolveExtensions.includes(entryBundleRelPathParsed.ext)) {
+            if (
+              entryBundleRelPathParsed.ext !== extJs &&
+              resolveExtensions.includes(entryBundleRelPathParsed.ext)
+            ) {
               assignEntry(
                 path.format({
                   ...entryBundleRelPathParsed,
