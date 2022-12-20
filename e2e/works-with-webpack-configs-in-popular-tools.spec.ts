@@ -29,7 +29,7 @@ const webpackConfig = require('react-scripts/config/webpack.config')(envInQuesti
 webpackConfig.entry = './src/server.js';
 
 webpackConfig.plugins = webpackConfig.plugins.filter(
-  (p) => !['HtmlWebpackPlugin', 'WebpackManifestPlugin'].includes(p.constructor.name)
+  (p) => p.constructor.name !== 'WebpackManifestPlugin'
 );
 
 webpackConfig.plugins.push(new Plugin());
@@ -72,10 +72,6 @@ process.env.NODE_ENV = envInQuestion;
 const webpackConfig = require('@vue/cli-service/webpack.config');
 
 webpackConfig.entry = './src/server.js';
-
-webpackConfig.plugins = webpackConfig.plugins.filter(
-  (p) => !['HtmlWebpackPlugin'].includes(p.constructor.name)
-);
 
 webpackConfig.plugins.push(new Plugin());
 

@@ -95,6 +95,9 @@ export class TranspileWebpackPlugin {
     });
 
     compiler.hooks.finishMake.tapPromise(pluginName, async (compilation) => {
+      // Only evaluates new entries in the main compilation.
+      if (compilation.compiler !== compiler) return;
+
       const outputPath = compiler.options.output.path!;
       const outputPathOfNodeModules = path.resolve(outputPath, baseNodeModules);
       const context = compiler.options.context!;
