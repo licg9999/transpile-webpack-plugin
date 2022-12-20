@@ -20,6 +20,21 @@ import { logStdout } from './logging';
 export function setupWebpackProject(
   files: Record<string, string> & { [webpackConfigDefaultFileName]: string }
 ): void {
+  autoChWebpackProject();
+
+  writeFiles({ ...webpackProjectMustHaveFiles, ...files });
+
+  const { status } = crossSpawn.sync('npm', ['i'], { encoding: encodingText, stdio: 'ignore' });
+  expect(status).toBe(0);
+
+  logStdout(
+    `Did setup webpack project with package.json: ${dim(
+      JSON.stringify(JSON.parse(fs.readFileSync('package.json', encodingText)), null, 0)
+    )}`
+  );
+}
+
+export function autoChWebpackProject(): string {
   const { testPath } = expect.getState();
 
   if (!testPath) {
@@ -30,28 +45,22 @@ export function setupWebpackProject(
 
   fs.mkdirSync(projectPath, { recursive: true });
 
-  process.chdir(projectPath);
+  chdir(projectPath);
 
-  let packageJsonText: string = '{}';
-  for (const [filePath, fileText] of Object.entries({
-    ...webpackProjectMustHaveFiles,
-    ...files,
-  })) {
+  return projectPath;
+}
+
+export function chdir(targetPath: string): void {
+  targetPath = path.resolve(targetPath);
+  process.chdir(targetPath);
+  logStdout(`Did change into dir: ${blueBright(path.relative(rootPath, targetPath))}`);
+}
+
+export function writeFiles(files: Record<string, string>): void {
+  for (const [filePath, fileText] of Object.entries(files)) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, fileText, encodingText);
-    if (filePath === 'package.json') {
-      packageJsonText = fileText;
-    }
   }
-
-  const { status } = crossSpawn.sync('npm', ['i'], { encoding: encodingText, stdio: 'ignore' });
-  expect(status).toBe(0);
-
-  logStdout(
-    `Did setup webpack project in: ${blueBright(
-      path.relative(rootPath, projectPath)
-    )}, with package.json ${dim(JSON.stringify(JSON.parse(packageJsonText), null, 0))}`
-  );
 }
 
 export function cleanAllWebpackProjects() {

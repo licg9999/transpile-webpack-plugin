@@ -15,6 +15,7 @@ export const baseNodeModules = 'node_modules';
 
 export const moduleType = 'commonjs-module';
 
+export const extJs = '.js';
 export const extJson = '.json';
 
 export const sourceTypeAsset = 'asset';
