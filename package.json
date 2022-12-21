@@ -1,17 +1,23 @@
 {
   "name": "transpile-webpack-plugin",
   "version": "1.0.0-semantic-release",
-  "description": "",
-  "keywords": [],
-  "repository": "licg9999/transpile-webpack-plugin",
-  "homepage": "https://github.com/licg9999/transpile-webpack-plugin",
-  "author": "licg <licg9999@gmail.com>",
   "license": "MIT",
+  "description": "Transpiles input files into output files individually without bundling together",
+  "keywords": [
+    "webpack",
+    "plugin",
+    "transpile",
+    "transpile-webpack-plugin"
+  ],
+  "author": "Chungen Li <licg9999@gmail.com> (https://github.com/licg9999)",
+  "bugs": "https://github.com/licg9999/transpile-webpack-plugin/issues",
+  "homepage": "https://github.com/licg9999/transpile-webpack-plugin",
+  "repository": "https://github.com/licg9999/transpile-webpack-plugin.git",
   "engines": {
     "node": ">=16"
   },
-  "types": "lib/index.d.ts",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "files": [
     "lib",
     "modules.d.ts",
