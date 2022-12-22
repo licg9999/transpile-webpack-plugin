@@ -18,7 +18,7 @@ import {
 import { logStdout } from './logging';
 
 export function setupWebpackProject(
-  files: Record<string, string> & { [webpackConfigDefaultFileName]: string }
+  files: Record<string, string> & { [webpackConfigDefaultFileName]?: string }
 ): void {
   autoChWebpackProject();
 

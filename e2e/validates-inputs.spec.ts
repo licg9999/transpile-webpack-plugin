@@ -7,16 +7,15 @@ import {
 } from '../support-helpers';
 
 describe('validates compiler options', () => {
-  function setup(validOpts: { target?: boolean; hmr?: boolean }) {
+  function setup(validOpts: { hmr?: boolean }) {
     setupWebpackProject({
       'webpack.config.js': `
 const { HotModuleReplacementPlugin } = require('webpack');
 const Plugin = require('${rootPath}');
 module.exports = {
-  ${boolToText(validOpts.target, `target: 'node',`, `target: 'webworker',`)}
   plugins: [
     ${boolToText(validOpts.hmr, '', 'new HotModuleReplacementPlugin(),')}
-    new Plugin()
+    new Plugin(),
   ],
 };
 `,
@@ -24,7 +23,7 @@ module.exports = {
   }
 
   it('throws error if hot module replacement enabled', () => {
-    setup({ target: true, hmr: false });
+    setup({ hmr: false });
     const { status, stderr } = execWebpack();
     expect(status).toBeGreaterThan(0);
     expect(stderr).toIncludeMultiple(['Error', 'Hot module replacement']);
@@ -41,7 +40,6 @@ describe('validates options', () => {
       'webpack.config.js': `
 const Plugin = require('${rootPath}');
 module.exports = {
-  target: 'node',
   entry: './src/index.js',
   plugins: [
     new Plugin({
@@ -52,7 +50,7 @@ module.exports = {
         (s) => `longestCommonDir: '${s}',`,
         (b) => boolToText(b, `longestCommonDir: __dirname,`, `longestCommonDir: 0,`)
       )}
-    })
+    }),
   ],
 };
 `,
@@ -96,7 +94,6 @@ describe('validates entries', () => {
 const Plugin = require('${rootPath}');
 module.exports = {
   entry: require.resolve('lodash'),
-  target: 'node',
   plugins: [new Plugin()],
 };
 `,
@@ -112,7 +109,6 @@ module.exports = {
 const Plugin = require('${rootPath}');
 module.exports = {
   entry: './src/index.mjs',
-  target: 'node',
   plugins: [new Plugin()],
 };
 `,
@@ -129,7 +125,6 @@ module.exports = {
 const Plugin = require('${rootPath}');
 module.exports = {
   entry: './src/index.js',
-  target: 'node',
   module: {
     rules: [
       {
