@@ -23,20 +23,6 @@ module.exports = {
     });
   }
 
-  it('throws error if target not specified', () => {
-    setup({});
-    const { status, stderr } = execWebpack();
-    expect(status).toBeGreaterThan(0);
-    expect(stderr).toIncludeMultiple(['Error', 'target', `'web'`]);
-  });
-
-  it('throws error if target not node-compatible', () => {
-    setup({ target: false });
-    const { status, stderr } = execWebpack();
-    expect(status).toBeGreaterThan(0);
-    expect(stderr).toIncludeMultiple(['Error', 'target', `'webworker'`]);
-  });
-
   it('throws error if hot module replacement enabled', () => {
     setup({ target: true, hmr: false });
     const { status, stderr } = execWebpack();

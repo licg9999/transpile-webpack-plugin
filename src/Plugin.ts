@@ -7,13 +7,12 @@ import { validate } from 'schema-utils';
 
 import { commonDirSync } from './commonDir';
 import {
+  enableBuiltinNodeGlobalsByDefaultIfTargetNodeCompatible,
   forceDisableOutputtingEsm,
   forceDisableSplitChunks,
-  forceEnableNodeGlobals,
   forceSetLibraryType,
   throwErrIfHotModuleReplacementEnabled,
   throwErrIfOutputPathNotSpecified,
-  throwErrIfTargetNotSupported,
   unifyDependencyResolving,
 } from './compilerOptions';
 import { Condition, createConditionTest } from './conditionTest';
@@ -78,7 +77,6 @@ export class TranspileWebpackPlugin {
     forceDisableSplitChunks(compiler.options);
     forceSetLibraryType(compiler.options, moduleType);
     forceDisableOutputtingEsm(compiler.options);
-    forceEnableNodeGlobals(compiler.options);
 
     const isPathExcluded = createConditionTest(exclude);
     const isPathInNodeModules = createConditionTest(reNodeModules);
@@ -89,8 +87,8 @@ export class TranspileWebpackPlugin {
 
     compiler.hooks.environment.tap({ name: pluginName, stage: stageVeryEarly }, () => {
       throwErrIfOutputPathNotSpecified(compiler.options);
-      throwErrIfTargetNotSupported(compiler.options);
       throwErrIfHotModuleReplacementEnabled(compiler.options);
+      enableBuiltinNodeGlobalsByDefaultIfTargetNodeCompatible(compiler.options);
       unifyDependencyResolving(compiler.options, moduleType.split('-')[0]);
     });
 
