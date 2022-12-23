@@ -9,6 +9,9 @@
     },
     "longestCommonDir": {
       "type": "string"
+    },
+    "extentionMapping": {
+      "type": "object"
     }
   },
   "additionalProperties": false,
