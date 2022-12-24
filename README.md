@@ -53,8 +53,9 @@ Just a reminder, if to run output files with NodeJS, don't forget to set the [ta
 ## Options
 
 - **[exclude](#exclude)**
-- **[hoistNodeModules](#hoistNodeModules)**
-- **[longestCommonDir](#longestCommonDir)**
+- **[hoistNodeModules](#hoistnodemodules)**
+- **[longestCommonDir](#longestcommondir)**
+- **[extentionMapping](#extentionmapping)**
 
 ### `exclude`
 
