@@ -35,6 +35,7 @@ describe('validates options', () => {
     exclude?: boolean;
     hoistNodeModules?: boolean;
     longestCommonDir?: boolean | string;
+    extentionMapping?: boolean;
   }) {
     setupWebpackProject({
       'webpack.config.js': `
@@ -43,13 +44,14 @@ module.exports = {
   entry: './src/index.js',
   plugins: [
     new Plugin({
-      ${boolToText(validOpts.exclude, `exclude: /bower_components/,`, `exclude: false,`)}
-      ${boolToText(validOpts.hoistNodeModules, `hoistNodeModules: false,`, `hoistNodeModules: 0,`)}
+      ${boolToText(validOpts.exclude, 'exclude: /bower_components/,', 'exclude: false,')}
+      ${boolToText(validOpts.hoistNodeModules, 'hoistNodeModules: false,', 'hoistNodeModules: 0,')}
       ${mapStrToText(
         validOpts.longestCommonDir,
         (s) => `longestCommonDir: '${s}',`,
-        (b) => boolToText(b, `longestCommonDir: __dirname,`, `longestCommonDir: 0,`)
+        (b) => boolToText(b, 'longestCommonDir: __dirname,', 'longestCommonDir: 0,')
       )}
+      ${boolToText(validOpts.extentionMapping, 'extentionMapping: {},', 'extentionMapping: 0,')}
     }),
   ],
 };
@@ -84,6 +86,13 @@ module.exports = {
     const { status, stderr } = execWebpack();
     expect(status).toBeGreaterThan(0);
     expect(stderr).toIncludeMultiple(['Error', 'longestCommonDir', './src/some/where']);
+  });
+
+  it(`throws error if extentionMapping not valid in format`, () => {
+    setup({ extentionMapping: false });
+    const { status, stderr } = execWebpack();
+    expect(status).toBeGreaterThan(0);
+    expect(stderr).toIncludeMultiple(['Invalid', 'extentionMapping']);
   });
 });
 

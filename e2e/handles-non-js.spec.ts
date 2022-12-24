@@ -1,9 +1,11 @@
+import { noop } from 'lodash';
+
 import {
   evaluateMustHavePackageJsonText,
   execNode,
   execWebpack,
-  expectCommonDirToIncludeAllFiles,
   expectCommonDirToIncludeAllFilesAnd,
+  expectCommonDirToIncludeSameFiles,
   expectCommonDirToIncludeSameFilesAnd,
   rootPath,
   setupWebpackProject,
@@ -18,7 +20,7 @@ output: {
 `;
 
 describe('handles json', () => {
-  it('with default JSON parser, outputs .json file as JSON', () => {
+  it('with default JSON parser, outputs .json file as JSON file', () => {
     setupWebpackProject({
       'webpack.config.js': `
 const Plugin = require('${rootPath}');
@@ -39,6 +41,36 @@ console.log(greeting);
     expect(execWebpack().status).toBe(0);
     expectCommonDirToIncludeSameFilesAnd({
       'dist/index.js': (t) => expect(t).not.toInclude('Hi, there!'),
+      'dist/constants.json': (t) => expect(JSON.parse(t)).toEqual({ greeting: 'Hi, there!' }),
+    });
+    const { stdout, status } = execNode('dist/index.js');
+    expect(status).toBe(0);
+    expect(stdout).toInclude('Hi, there!');
+  });
+
+  it(`with default JSON parser, doesn't generate source-map file for outputted JSON file`, () => {
+    setupWebpackProject({
+      'webpack.config.js': `
+const Plugin = require('${rootPath}');
+module.exports = {
+  ${webpackConfigReusable}
+  entry: './src/index.js',
+  devtool: 'source-map',
+  plugins: [new Plugin()],
+};
+`,
+      'src/index.js': `
+import { greeting } from './constants.json';
+console.log(greeting);
+`,
+      'src/constants.json': `
+{ "greeting": "Hi, there!" }
+`,
+    });
+    expect(execWebpack().status).toBe(0);
+    expectCommonDirToIncludeSameFilesAnd({
+      'dist/index.js': (t) => expect(t).not.toInclude('Hi, there!'),
+      'dist/index.js.map': noop,
       'dist/constants.json': (t) => expect(JSON.parse(t)).toEqual({ greeting: 'Hi, there!' }),
     });
     const { stdout, status } = execNode('dist/index.js');
@@ -327,6 +359,76 @@ console.log(textsContent);
       expect(stdout).toInclude('Hi, there!');
     }
   );
+
+  it(`with asset/*, doesn't generate source-map file for outputted JS file`, () => {
+    setupWebpackProject({
+      'webpack.config.js': `
+const Plugin = require('${rootPath}');
+module.exports = {
+  ${webpackConfigReusable.replace(
+    /output:\s*\{([^}]*)\}/s,
+    `output: {
+  $1
+  publicPath: '/public/',
+}`
+  )}
+  entry: './src/index.js',
+  devtool: 'source-map',
+  module: {
+    rules: [
+      {
+        test: /\\.1\\.txt$/,
+        type: 'asset/resource',
+        generator: {
+          emit: false,
+        },
+      },
+      {
+        test: /\\.2\\.txt$/,
+        type: 'asset/inline',
+      },
+      {
+        test: /\\.3\\.txt$/,
+        type: 'asset/source',
+      },
+    ],
+  },
+  plugins: [new Plugin()],
+};
+`,
+      'src/index.js': `
+import { Buffer } from 'node:buffer';
+import t1 from './texts.1.txt';
+import t2 from './texts.2.txt';
+import t3 from './texts.3.txt';
+console.log(t1, Buffer.from(t2.substring(t2.indexOf(',') + 1), 'base64').toString('utf8'), t3);
+`,
+      'src/texts.1.txt': 'Hi, t1!',
+      'src/texts.2.txt': 'Hi, t2!',
+      'src/texts.3.txt': 'Hi, t3!',
+    });
+    expect(execWebpack().status).toBe(0);
+    expectCommonDirToIncludeSameFilesAnd({
+      'dist/index.js': (t) => {
+        expect(t).not.toInclude('Hi');
+        expect(t).toIncludeMultiple([
+          'require("./texts.1.txt")',
+          'require("./texts.2.txt")',
+          'require("./texts.3.txt")',
+        ]);
+      },
+      'dist/index.js.map': noop,
+      'dist/texts.1.txt': (t) => expect(t).toIncludeMultiple(['/public/', '.txt']),
+      'dist/texts.2.txt': (t) => {
+        expect(t).not.toInclude('Hi, t2!');
+        expect(t).toInclude('data:text/plain;base64');
+      },
+      'dist/texts.3.txt': (t) => expect(t).toInclude('Hi, t3!'),
+    });
+    const { stdout, status } = execNode('dist/index.js');
+    expect(status).toBe(0);
+    expect(stdout).toIncludeMultiple(['/public/', '.txt', 'Hi, t2!', 'Hi, t3!']);
+  });
 });
 
 describe('handles vue SFC', () => {
@@ -428,6 +530,49 @@ h1 {
   );
 });
 
+describe('with option.extentionMapping', () => {
+  it('maps but correctly resolves the mapped in the output', () => {
+    setupWebpackProject({
+      'webpack.config.js': `
+const Plugin = require('${rootPath}');
+module.exports = {
+  ${webpackConfigReusable}
+  entry: './src/index.es',
+  module: {
+    rules: [
+      {
+        test: /\\.(es|ts)$/,
+        type: 'javascript/auto',
+      }
+    ]
+  },
+  plugins: [
+    new Plugin({ extentionMapping: { '.ts': '.js' } })
+  ],
+};
+`,
+      'src/index.es': `
+import { greeting } from './constants.ts';
+console.log(greeting);
+`,
+      'src/constants.ts': `
+export const greeting = 'Hi, there!';
+`,
+    });
+    expect(execWebpack().status).toBe(0);
+    expectCommonDirToIncludeSameFilesAnd({
+      'dist/index.es': (t) => {
+        expect(t).not.toInclude('Hi, there!');
+        expect(t).toInclude('require("./constants.js")');
+      },
+      'dist/constants.js': (t) => expect(t).toInclude('Hi, there!'),
+    });
+    const { stdout, status } = execNode('dist/index.es');
+    expect(status).toBe(0);
+    expect(stdout).toInclude('Hi, there!');
+  });
+});
+
 describe('edge cases on outputting JS file with ext other than .js', () => {
   for (const devtool of ['source-map', 'inline-source-map']) {
     it(`works with ${devtool}`, () => {
@@ -451,7 +596,7 @@ module.exports = {
 `,
         'src/index.coffee': `
 import { throwErrUnconditional } from './throw.coffee'
-throwErrUnconditional();
+throwErrUnconditional()
 `,
         'src/throw.coffee': `
 export throwErrUnconditional = () ->
@@ -467,7 +612,11 @@ export throwErrUnconditional = () ->
         }),
       });
       expect(execWebpack().status).toBe(0);
-      expectCommonDirToIncludeAllFiles(['dist/index.coffee', 'dist/throw.coffee']);
+      expectCommonDirToIncludeSameFiles([
+        'dist/index.coffee',
+        'dist/throw.coffee',
+        ...(devtool === 'source-map' ? ['dist/index.coffee.map', 'dist/throw.coffee.map'] : []),
+      ]);
       const { stdout, stderr, status } = execNode(
         '-r',
         'source-map-support/register',
@@ -515,6 +664,54 @@ console.log('Hi, there!');
     expect(execWebpack().status).toBe(0);
     expectCommonDirToIncludeSameFilesAnd({
       'dist/index.coffee': (t) => expect(t).not.toIncludeAnyMembers(['/*', '*/']),
+    });
+    const { stdout, status } = execNode('dist/index.coffee');
+    expect(status).toBe(0);
+    expect(stdout).toInclude('Hi, there!');
+  });
+
+  it('works with resolve.extensions', () => {
+    setupWebpackProject({
+      'webpack.config.js': `
+const Plugin = require('${rootPath}');
+module.exports = {
+  ${webpackConfigReusable}
+  entry: './src/index.coffee',
+  module: {
+    rules: [
+      {
+        test: /\\.coffee$/,
+        use: 'coffee-loader',
+      }
+    ]
+  },
+  resolve: {
+    extensions: ['.coffee']
+  },
+  plugins: [new Plugin()],
+};
+      `,
+      'src/index.coffee': `
+import { greeting } from './constants'
+console.log(greeting)
+`,
+      'src/constants.coffee': `
+export greeting = 'Hi, there!'
+`,
+      'package.json': evaluateMustHavePackageJsonText({
+        ['devDependencies']: {
+          ['coffee-loader']: '^4.0.0',
+          ['coffeescript']: '^2.7.0',
+        },
+      }),
+    });
+    expect(execWebpack().status).toBe(0);
+    expectCommonDirToIncludeSameFilesAnd({
+      'dist/index.coffee': (t) => {
+        expect(t).not.toInclude('Hi, there!');
+        expect(t).toInclude('require("./constants.coffee")');
+      },
+      'dist/constants.coffee': (t) => expect(t).toInclude('Hi, there!'),
     });
     const { stdout, status } = execNode('dist/index.coffee');
     expect(status).toBe(0);

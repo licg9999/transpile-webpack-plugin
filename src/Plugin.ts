@@ -18,7 +18,6 @@ import {
 import { Condition, createConditionTest } from './conditionTest';
 import {
   baseNodeModules,
-  extJs,
   extJson,
   moduleType,
   pluginName,
@@ -49,6 +48,7 @@ export interface TranspileWebpackPluginInternalOptions {
   exclude: Condition;
   hoistNodeModules: boolean;
   longestCommonDir?: string;
+  extentionMapping: Record<string, string>;
 }
 
 export class TranspileWebpackPlugin {
@@ -66,13 +66,14 @@ export class TranspileWebpackPlugin {
       ...options,
       exclude: options.exclude ?? [],
       hoistNodeModules: options.hoistNodeModules ?? true,
+      extentionMapping: options.extentionMapping ?? {},
     };
     this.sourceMapDevToolPluginController = new SourceMapDevToolPluginController();
     this.terserWebpackPluginController = new TerserWebpackPluginController();
   }
 
   apply(compiler: Compiler) {
-    const { exclude, hoistNodeModules, longestCommonDir } = this.options;
+    const { exclude, hoistNodeModules, longestCommonDir, extentionMapping } = this.options;
 
     forceDisableSplitChunks(compiler.options);
     forceSetLibraryType(compiler.options, moduleType);
@@ -99,7 +100,6 @@ export class TranspileWebpackPlugin {
       const outputPath = compiler.options.output.path!;
       const outputPathOfNodeModules = path.resolve(outputPath, baseNodeModules);
       const context = compiler.options.context!;
-      const resolveExtensions = compiler.options.resolve.extensions ?? [];
 
       const entryDeps = new Map<string, Dependency>();
       const touchedMods = new Set<Module>();
@@ -276,22 +276,36 @@ export class TranspileWebpackPlugin {
       }
 
       function evaluateBundlePath(resourcePath: string): string {
+        let bundlePath = resourcePath;
         if (entryResourcePaths.includes(resourcePath)) {
           if (hoistNodeModules) {
             const matchesNodeModules = resourcePath.match(reNodeModules);
             if (matchesNodeModules) {
-              return path.resolve(
+              bundlePath = path.resolve(
                 outputPathOfNodeModules,
                 resourcePath.substring(matchesNodeModules.index! + matchesNodeModules[0].length)
               );
             } else {
-              return path.resolve(outputPath, path.relative(commonDirWoNodeModules, resourcePath));
+              bundlePath = path.resolve(
+                outputPath,
+                path.relative(commonDirWoNodeModules, resourcePath)
+              );
             }
           } else {
-            return path.resolve(outputPath, path.relative(commonDir, resourcePath));
+            bundlePath = path.resolve(outputPath, path.relative(commonDir, resourcePath));
+          }
+
+          const bundlePathParsed = path.parse(bundlePath);
+          const bundlePathNewExt = extentionMapping[bundlePathParsed.ext];
+          if (typeof bundlePathNewExt === 'string') {
+            bundlePath = path.format({
+              ...bundlePathParsed,
+              ext: bundlePathNewExt,
+              base: bundlePathParsed.name + bundlePathNewExt,
+            });
           }
         }
-        return resourcePath;
+        return bundlePath;
       }
 
       function evaluateBundleRelPath(resourcePath: string): string {
@@ -308,23 +322,9 @@ export class TranspileWebpackPlugin {
           } else {
             assignEntry(entryBundleRelPath, entryDep);
 
-            if (
-              entryBundleRelPathParsed.ext !== extJs &&
-              resolveExtensions.includes(entryBundleRelPathParsed.ext)
-            ) {
-              assignEntry(
-                path.format({
-                  ...entryBundleRelPathParsed,
-                  ext: '',
-                  base: entryBundleRelPathParsed.name,
-                }),
-                entryDep
-              );
-            }
-
             const entryMod = compilation.moduleGraph.getModule(entryDep);
             if (entryMod) {
-              if (!entryMod.getSourceTypes().has(sourceTypeAsset)) {
+              if (!entryMod.type.startsWith(sourceTypeAsset)) {
                 entryExtentionsToHaveSourceMaps.add(entryBundleRelPathParsed.ext);
               }
             }
