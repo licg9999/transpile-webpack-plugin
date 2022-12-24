@@ -90,6 +90,14 @@ Given input files `src/server/index.js` `src/server/constants/greeting.js` and o
 
 Though, given input files `src/index.js` `src/server/constants/greeting.js` and output dir `dist`, with this option `'./src/server'`, output files will still be `dist/index.js` `dist/server/constants/greeting.js` because the common dir of input files is shorter than this option.
 
+### `extentionMapping`
+
+Type: `{Record<string, string>}`
+
+Default: `{}`
+
+Option `extentionMapping` indicates how file extensions are mapped from input to output. By default, one output file will have exactly the same file extension as the input file. But you may change it by this option. Given this option `{ '.ts': '.js' }`, any input file with ext `.ts` will have the output file with ext `.js`.
+
 ## Contributing
 
 Please take a moment to read our contributing guidelines if you haven't yet done so.
