@@ -1,5 +1,8 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+
+import { pluginName } from './constants';
 
 function longestCommonPrefix(strs: string[]): string {
   if (!strs.length) return '';
@@ -38,7 +41,7 @@ export function commonDirSync(
   if (!isDir(prefix)) {
     prefix = path.dirname(prefix);
     if (!isDir(prefix)) {
-      throw new Error('No valid common dir is figured out');
+      throw new Error(`${pluginName}${os.EOL}No valid common dir is figured out`);
     }
   }
 
@@ -46,7 +49,9 @@ export function commonDirSync(
     const finalLongestCommonDir = normalizePath(opts.longestCommonDir, opts);
 
     if (!isDir(finalLongestCommonDir)) {
-      throw new Error(`The longestCommonDir '${opts.longestCommonDir}' doesn't exist`);
+      throw new Error(
+        `${pluginName}${os.EOL}The longestCommonDir '${opts.longestCommonDir}' doesn't exist`
+      );
     }
 
     if (prefix.startsWith(finalLongestCommonDir)) {

@@ -1,3 +1,5 @@
+import os from 'node:os';
+
 import { flatten, pick, set } from 'lodash';
 
 import { pluginName } from './constants';
@@ -13,13 +15,14 @@ export function forceSetLibraryType(compilerOptions: CompilerOptions, libraryTyp
   set(compilerOptions, 'output.library.type', libraryType);
 }
 
-export function forceDisableOutputtingEsm(compilerOptions: CompilerOptions): void {
+export function forceDisableOutputModule(compilerOptions: CompilerOptions): void {
   set(compilerOptions, 'experiments.outputModule', false);
 }
 
 export function throwErrIfOutputPathNotSpecified(compilerOptions: CompilerOptions): void {
   const { output } = compilerOptions;
-  if (!output.path) throw new Error(`The output.path in webpack config is not specified`);
+  if (!output.path)
+    throw new Error(`${pluginName}${os.EOL}The output.path in webpack config is not specified`);
 }
 
 export function throwErrIfHotModuleReplacementEnabled(compilerOptions: CompilerOptions): void {
@@ -29,36 +32,32 @@ export function throwErrIfHotModuleReplacementEnabled(compilerOptions: CompilerO
       p instanceof HotModuleReplacementPlugin ||
       p.constructor.name === 'HotModuleReplacementPlugin'
     ) {
-      throw new Error(`Hot module replacement is not supported when using plugin '${pluginName}'`);
+      throw new Error(
+        `${pluginName}${os.EOL}Hot module replacement is not supported when using plugin '${pluginName}'`
+      );
     }
   }
 }
 
-export function enableBuiltinNodeGlobalsByDefaultIfTargetNodeCompatible(
-  compilerOptions: CompilerOptions
-): void {
-  const { target } = compilerOptions;
-
-  const isTargetNodeCompatible = flatten([target]).some(
-    (t) => typeof t === 'string' && t.includes('node')
-  );
-
-  if (isTargetNodeCompatible) {
-    if (compilerOptions.node) {
-      D(compilerOptions.node, '__dirname', false);
-      D(compilerOptions.node, '__filename', false);
-    }
+export function enableBuiltinNodeGlobalsByDefault(compilerOptions: CompilerOptions): void {
+  if (compilerOptions.node) {
+    D(compilerOptions.node, '__dirname', false);
+    D(compilerOptions.node, '__filename', false);
   }
 }
 
-export function unifyDependencyResolving(compilerOptions: CompilerOptions, wantedType: string) {
+export function isTargetNodeCompatible(target: CompilerOptions['target']): boolean {
+  return flatten([target]).some((t) => typeof t === 'string' && t.includes('node'));
+}
+
+export function alignResolveByDependency(compilerOptions: CompilerOptions, preferredType: string) {
   const { byDependency } = compilerOptions.resolve;
   if (!byDependency) return;
-  if (!Object.prototype.hasOwnProperty.call(byDependency, wantedType)) wantedType = 'unknown';
-  const wantedOpts = byDependency[wantedType];
+  if (!Object.prototype.hasOwnProperty.call(byDependency, preferredType)) preferredType = 'unknown';
+  const preferredOpts = byDependency[preferredType];
   for (const [type, opts] of Object.entries(byDependency)) {
-    if (type !== wantedType) {
-      Object.assign(opts, pick(wantedOpts, Object.keys(opts)));
+    if (type !== preferredType) {
+      Object.assign(opts, pick(preferredOpts, Object.keys(opts)));
     }
   }
 }
