@@ -56,6 +56,7 @@ Just a reminder, if to run output files with NodeJS, don't forget to set the [ta
 - **[hoistNodeModules](#hoistnodemodules)**
 - **[longestCommonDir](#longestcommondir)**
 - **[extentionMapping](#extentionmapping)**
+- **[preferResolveByDependencyAsCjs](#preferresolvebydependencyascjs)**
 
 ### `exclude`
 
@@ -97,7 +98,17 @@ Type: `{Record<string, string>}`
 
 Default: `{}`
 
-Option `extentionMapping` indicates how file extensions are mapped from input to output. By default, one output file will have exactly the same file extension as the input file. But you may change it by this option. Given this option `{ '.ts': '.js' }`, any input file with ext `.ts` will have the output file with ext `.js`.
+Option `extentionMapping` indicates how file extensions are mapped from input to output. By default, one output file will have exactly the same file extension as the input file. But you may change it by this option. With this option `{ '.ts': '.js' }`, any input file with ext `.ts` will have the output file with ext `.js`.
+
+### `preferResolveByDependencyAsCjs`
+
+Type: `boolean`
+
+Default: `true`
+
+Options `preferResolveByDependencyAsCjs` indicates whether to try to resolve dependencies by CommonJS [exports](https://nodejs.org/api/packages.html#conditional-exports) regardless of types of import statements. It's useful when the target is `node` because `.mjs` files are treated as ES modules in NodeJS and [can't be required](https://nodejs.org/api/esm.html#require) by webpack generated CommonJS files.
+
+Given `{ "exports": { "import": "index.mjs", "require": "index.cjs" } }` in `package.json` of a dependency, with this option `true`, either `import` or `require` to this dependency will end up with `index.cjs`. And with this option `false`, `import` is with `index.mjs` and `require` is with `index.cjs`(, which is also the default behavior of webpack).
 
 ## Contributing
 
