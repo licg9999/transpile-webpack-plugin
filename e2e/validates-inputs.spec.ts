@@ -36,6 +36,7 @@ describe('validates options', () => {
     hoistNodeModules?: boolean;
     longestCommonDir?: boolean | string;
     extentionMapping?: boolean;
+    preferResolveByDependencyAsCjs?: boolean;
   }) {
     setupWebpackProject({
       'webpack.config.js': `
@@ -52,6 +53,11 @@ module.exports = {
         (b) => boolToText(b, 'longestCommonDir: __dirname,', 'longestCommonDir: 0,')
       )}
       ${boolToText(validOpts.extentionMapping, 'extentionMapping: {},', 'extentionMapping: 0,')}
+      ${
+        (boolToText(validOpts.preferResolveByDependencyAsCjs),
+        'preferResolveByDependencyAsCjs: true,',
+        'preferResolveByDependencyAsCjs: 0,')
+      }
     }),
   ],
 };
@@ -88,11 +94,18 @@ module.exports = {
     expect(stderr).toIncludeMultiple(['Error', 'longestCommonDir', './src/some/where']);
   });
 
-  it(`throws error if extentionMapping not valid in format`, () => {
+  it('throws error if extentionMapping not valid in format', () => {
     setup({ extentionMapping: false });
     const { status, stderr } = execWebpack();
     expect(status).toBeGreaterThan(0);
     expect(stderr).toIncludeMultiple(['Invalid', 'extentionMapping']);
+  });
+
+  it('throws error if preferResolveByDependencyAsCjs not valid in format', () => {
+    setup({ preferResolveByDependencyAsCjs: false });
+    const { status, stderr } = execWebpack();
+    expect(status).toBeGreaterThan(0);
+    expect(stderr).toIncludeMultiple(['Invalid', 'preferResolveByDependencyAsCjs']);
   });
 });
 
@@ -112,20 +125,25 @@ module.exports = {
     expect(stderr).toIncludeMultiple(['Error', 'No entry', `outside 'node_modules'`]);
   });
 
-  it(`throws error if any '.mjs' file found`, () => {
+  it(`prints warning if any '.mjs' file found with target 'node'`, () => {
     setupWebpackProject({
       'webpack.config.js': `
 const Plugin = require('${rootPath}');
 module.exports = {
+  mode: 'production',
+  target: 'node',
+  output: {
+    path: __dirname + '/dist',
+  },
   entry: './src/index.mjs',
   plugins: [new Plugin()],
 };
 `,
       'src/index.mjs': '',
     });
-    const { status, stderr } = execWebpack();
-    expect(status).toBeGreaterThan(0);
-    expect(stderr).toIncludeMultiple(['Error', 'Outputting ES modules', `'.mjs' files`]);
+    const { status, stdout } = execWebpack();
+    expect(status).toBe(0);
+    expect(stdout).toIncludeMultiple(['WARNING', `'.mjs' files`, './src/index.mjs']);
   });
 
   it(`throws error if any '.json' file is not type of JSON`, () => {

@@ -1,4 +1,4 @@
-import { pluginName, stageVeryEarly } from './constants';
+import { pluginName, hookStageVeryEarly } from './constants';
 import { Compiler, EvalSourceMapDevToolPlugin, SourceMapDevToolPlugin } from './peers/webpack';
 import { CompilerOptions, SourceMapDevToolPluginOptions } from './types';
 
@@ -7,7 +7,7 @@ export class SourceMapDevToolPluginController {
   oldDevtool: CompilerOptions['devtool'];
 
   apply(compiler: Compiler): void {
-    compiler.hooks.environment.tap({ name: pluginName, stage: stageVeryEarly }, () => {
+    compiler.hooks.environment.tap({ name: pluginName, stage: hookStageVeryEarly }, () => {
       if (compiler.options.devtool) {
         if (compiler.options.devtool.includes('source-map')) {
           this.initSourceMapDevToolPlugin(compiler);
@@ -18,7 +18,7 @@ export class SourceMapDevToolPluginController {
       }
     });
 
-    compiler.hooks.initialize.tap({ name: pluginName, stage: stageVeryEarly }, () => {
+    compiler.hooks.initialize.tap({ name: pluginName, stage: hookStageVeryEarly }, () => {
       // Restore devtool after compiler options get processed inside webpack.
       this.restoreDevtool(compiler.options);
     });

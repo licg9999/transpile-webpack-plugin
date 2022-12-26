@@ -7,24 +7,27 @@ import { validate } from 'schema-utils';
 
 import { commonDirSync } from './commonDir';
 import {
-  enableBuiltinNodeGlobalsByDefaultIfTargetNodeCompatible,
-  forceDisableOutputtingEsm,
+  alignResolveByDependency,
+  enableBuiltinNodeGlobalsByDefault,
+  forceDisableOutputModule,
   forceDisableSplitChunks,
   forceSetLibraryType,
+  isTargetNodeCompatible,
   throwErrIfHotModuleReplacementEnabled,
   throwErrIfOutputPathNotSpecified,
-  unifyDependencyResolving,
 } from './compilerOptions';
 import { Condition, createConditionTest } from './conditionTest';
 import {
   baseNodeModules,
+  externalModuleTypeCjs,
   extJson,
-  moduleType,
+  hookStageVeryEarly,
+  outputLibraryTypeCjs,
   pluginName,
-  reEsmFile,
+  reMjsFile,
   reNodeModules,
+  resolveByDependencyTypeCjs,
   sourceTypeAsset,
-  stageVeryEarly,
 } from './constants';
 import optionsSchema from './optionsSchema.json';
 import {
@@ -34,6 +37,7 @@ import {
   Module,
   NormalModule,
   sources,
+  WebpackError,
 } from './peers/webpack';
 import ModuleProfile from './peers/webpack/lib/ModuleProfile';
 import { SourceMapDevToolPluginController } from './SourceMapDevToolPluginController';
@@ -49,6 +53,7 @@ export interface TranspileWebpackPluginInternalOptions {
   hoistNodeModules: boolean;
   longestCommonDir?: string;
   extentionMapping: Record<string, string>;
+  preferResolveByDependencyAsCjs: boolean;
 }
 
 export class TranspileWebpackPlugin {
@@ -67,30 +72,43 @@ export class TranspileWebpackPlugin {
       exclude: options.exclude ?? [],
       hoistNodeModules: options.hoistNodeModules ?? true,
       extentionMapping: options.extentionMapping ?? {},
+      preferResolveByDependencyAsCjs: options.preferResolveByDependencyAsCjs ?? true,
     };
     this.sourceMapDevToolPluginController = new SourceMapDevToolPluginController();
     this.terserWebpackPluginController = new TerserWebpackPluginController();
   }
 
   apply(compiler: Compiler) {
-    const { exclude, hoistNodeModules, longestCommonDir, extentionMapping } = this.options;
+    const {
+      exclude,
+      hoistNodeModules,
+      longestCommonDir,
+      extentionMapping,
+      preferResolveByDependencyAsCjs,
+    } = this.options;
 
     forceDisableSplitChunks(compiler.options);
-    forceSetLibraryType(compiler.options, moduleType);
-    forceDisableOutputtingEsm(compiler.options);
+    forceSetLibraryType(compiler.options, outputLibraryTypeCjs);
+    forceDisableOutputModule(compiler.options);
 
     const isPathExcluded = createConditionTest(exclude);
     const isPathInNodeModules = createConditionTest(reNodeModules);
-    const isPathEsmFile = createConditionTest(reEsmFile);
+    const isPathMjsFile = createConditionTest(reMjsFile);
 
     this.sourceMapDevToolPluginController.apply(compiler);
     this.terserWebpackPluginController.apply(compiler);
 
-    compiler.hooks.environment.tap({ name: pluginName, stage: stageVeryEarly }, () => {
+    compiler.hooks.environment.tap({ name: pluginName, stage: hookStageVeryEarly }, () => {
       throwErrIfOutputPathNotSpecified(compiler.options);
       throwErrIfHotModuleReplacementEnabled(compiler.options);
-      enableBuiltinNodeGlobalsByDefaultIfTargetNodeCompatible(compiler.options);
-      unifyDependencyResolving(compiler.options, moduleType.split('-')[0]);
+
+      if (isTargetNodeCompatible(compiler.options.target)) {
+        enableBuiltinNodeGlobalsByDefault(compiler.options);
+      }
+
+      if (preferResolveByDependencyAsCjs) {
+        alignResolveByDependency(compiler.options, resolveByDependencyTypeCjs);
+      }
     });
 
     compiler.hooks.finishMake.tapPromise(pluginName, async (compilation) => {
@@ -116,18 +134,20 @@ export class TranspileWebpackPlugin {
       );
 
       if (entryResourcePathsWoNodeModules.length === 0) {
-        throw new Error(`No entry is found outside 'node_modules'`);
+        throw new Error(`${pluginName}${os.EOL}No entry is found outside 'node_modules'`);
       }
 
-      const entryResourcePathsOutputtingEsm = entryResourcePaths.filter(isPathEsmFile);
-      if (entryResourcePathsOutputtingEsm.length > 0) {
-        throw new Error(
-          `Outputting ES modules is not supported yet. Found '.mjs' files:${os.EOL}` +
-            entryResourcePathsOutputtingEsm
-              .map((p) => '  ' + path.relative(context, p))
-              .join(os.EOL) +
-            `${os.EOL}----`
-        );
+      if (isTargetNodeCompatible(compiler.options.target)) {
+        const entryResourceMjsFiles = entryResourcePaths.filter(isPathMjsFile);
+        if (entryResourceMjsFiles.length > 0) {
+          const warning = new WebpackError(
+            `${pluginName}${os.EOL}Might be problematic to run '.mjs' files with target 'node'. Found '.mjs' files:${os.EOL}` +
+              entryResourceMjsFiles
+                .map((p) => `  .${path.sep}${path.relative(context, p)}`)
+                .join(os.EOL)
+          );
+          compilation.warnings.push(warning);
+        }
       }
 
       const commonDir = commonDirSync(entryResourcePaths, {
@@ -239,7 +259,7 @@ export class TranspileWebpackPlugin {
           request = `.${path.sep}${request}`;
         }
 
-        const extModCandidate = new ExternalModule(request, moduleType, request);
+        const extModCandidate = new ExternalModule(request, externalModuleTypeCjs, request);
         let extMod = compilation.getModule(extModCandidate);
         let doesExtModNeedBuild = false;
         if (!(extMod instanceof ExternalModule)) {
@@ -342,7 +362,10 @@ export class TranspileWebpackPlugin {
           const { jsonData } = entryMod.buildInfo;
           if (!jsonData) {
             throw new Error(
-              `File '${path.relative(context, entryResourcePath)}' is not type of JSON`
+              `${pluginName}${os.EOL}File '${path.relative(
+                context,
+                entryResourcePath
+              )}' is not type of JSON`
             );
           }
           entryMod.buildInfo.assets = {

@@ -12,6 +12,9 @@
     },
     "extentionMapping": {
       "type": "object"
+    },
+    "preferResolveByDependencyAsCjs": {
+      "type": "boolean"
     }
   },
   "additionalProperties": false,

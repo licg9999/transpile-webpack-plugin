@@ -9,14 +9,16 @@ export const { name: packageName } = readJsonSync<{ name: string }>(
 export const pluginName = startCase(packageName);
 
 export const reNodeModules = /[\\/]node_modules[\\/]/;
-export const reEsmFile = /\.mjs$/;
+export const reMjsFile = /\.mjs$/;
 
 export const baseNodeModules = 'node_modules';
 
-export const moduleType = 'commonjs-module';
+export const resolveByDependencyTypeCjs = 'commonjs';
+export const outputLibraryTypeCjs = 'commonjs-module';
+export const externalModuleTypeCjs = 'commonjs-module';
 
 export const extJson = '.json';
 
 export const sourceTypeAsset = 'asset';
 
-export const stageVeryEarly = -1000000;
+export const hookStageVeryEarly = -1000000;
