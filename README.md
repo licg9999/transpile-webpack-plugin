@@ -115,6 +115,65 @@ Options `preferResolveByDependencyAsCjs` indicates whether to try to resolve dep
 
 Given `{ "exports": { "import": "index.mjs", "require": "index.cjs" } }` in `package.json` of a dependency, with this option `true`, either `import` or `require` to this dependency will end up with `index.cjs`. And with this option `false`, `import` is with `index.mjs` and `require` is with `index.cjs`(, which is also the default behavior of webpack).
 
+## Known limits
+
+**<a name="known-limit-01" href="#known-limit-01">01:</a>** Can't handle circular dependencies in the same way as NodeJS.
+
+In NodeJS, top-level logics in a file run exactly at the time when it's required, which makes circular dependencies possible to work. Take an example of files `a.js` and `b.js`:
+
+```js
+// In file 'a.js'
+const b = require('./b');
+
+function main() {
+  b.goo();
+}
+
+function foo() {
+  console.log('lorem ipsum');
+}
+
+module.exports = { foo };
+
+main();
+
+// In file 'b.js'
+
+const a = require('./a');
+
+function goo() {
+  a.foo();
+}
+
+module.exports = { goo };
+```
+
+When `a.js` runs, an error of `TypeError: a.foo is not a function` thrown from `b.js`. But putting the line `const b = require('./b');` just after `module.exports = { foo };` resolves the problem:
+
+```diff
+// In file 'a.js'
+-
+-const b = require('./b');
+
+function main() {
+  b.goo();
+}
+
+function foo() {
+  console.log('lorem ipsum');
+}
+
+module.exports = { foo };
++
++const b = require('./b');
+
+main();
+```
+
+Though, for a webpack generated file, the real exporting is always done in the end of it. Webpack collects all the exports into an internal variable `__webpack_exports__`, then exports it at last, which makes circular dependencies always break.
+
+Making circular dependencies is a bad practice. But you might have to face them if using some libs that are popular but maintained since the early releases of NodeJS, like [jsdom](https://github.com/jsdom/jsdom). When this happens, please use the [externals](https://webpack.js.org/configuration/externals/) to leave the libs untouched.
+
 ## Contributing
 
 Please take a moment to read our contributing guidelines if you haven't yet done so.
