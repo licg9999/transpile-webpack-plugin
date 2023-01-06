@@ -263,7 +263,7 @@ export class TranspileWebpackPlugin {
         const extModCandidate = new TranspileExternalModule(
           request,
           externalModuleTypeCjs,
-          childResourcePath
+          entryResourcePath
         );
         let extMod = compilation.getModule(extModCandidate);
         let doesExtModNeedBuild = false;
