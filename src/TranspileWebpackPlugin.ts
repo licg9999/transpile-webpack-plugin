@@ -42,6 +42,7 @@ import {
 import ModuleProfile from './peers/webpack/lib/ModuleProfile';
 import { SourceMapDevToolPluginController } from './SourceMapDevToolPluginController';
 import { TerserWebpackPluginController } from './TerserWebpackPluginController';
+import { TranspileExternalModule } from './TranspileExternalModule';
 import { walkDependencies, walkDependenciesSync } from './walkDependencies';
 
 const { RawSource } = sources;
@@ -259,7 +260,11 @@ export class TranspileWebpackPlugin {
           request = `.${path.sep}${request}`;
         }
 
-        const extModCandidate = new ExternalModule(request, externalModuleTypeCjs, request);
+        const extModCandidate = new TranspileExternalModule(
+          request,
+          externalModuleTypeCjs,
+          childResourcePath
+        );
         let extMod = compilation.getModule(extModCandidate);
         let doesExtModNeedBuild = false;
         if (!(extMod instanceof ExternalModule)) {

@@ -53,11 +53,11 @@ module.exports = {
         (b) => boolToText(b, 'longestCommonDir: __dirname,', 'longestCommonDir: 0,')
       )}
       ${boolToText(validOpts.extentionMapping, 'extentionMapping: {},', 'extentionMapping: 0,')}
-      ${
-        (boolToText(validOpts.preferResolveByDependencyAsCjs),
+      ${boolToText(
+        validOpts.preferResolveByDependencyAsCjs,
         'preferResolveByDependencyAsCjs: true,',
-        'preferResolveByDependencyAsCjs: 0,')
-      }
+        'preferResolveByDependencyAsCjs: 0,'
+      )}
     }),
   ],
 };
