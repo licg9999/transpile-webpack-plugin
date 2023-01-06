@@ -1,3 +1,3 @@
-import { TranspileWebpackPlugin } from './Plugin';
+import { TranspileWebpackPlugin } from './TranspileWebpackPlugin';
 
 export = TranspileWebpackPlugin;
