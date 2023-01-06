@@ -1,14 +1,14 @@
 import { ExternalModule } from './peers/webpack';
 
 export class TranspileExternalModule extends ExternalModule {
-  resourcePath: string;
+  originPath: string;
 
-  constructor(request: string, type: string, resourcePath: string) {
+  constructor(request: string, type: string, originPath: string) {
     super(request, type, request);
-    this.resourcePath = resourcePath;
+    this.originPath = originPath;
   }
 
   identifier() {
-    return `external ${this.externalType} ${this.resourcePath}`;
+    return `${super.identifier()} (${this.originPath})`;
   }
 }
