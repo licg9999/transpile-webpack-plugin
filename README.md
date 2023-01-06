@@ -117,7 +117,7 @@ Given `{ "exports": { "import": "index.mjs", "require": "index.cjs" } }` in `pac
 
 ## Known limits
 
-**<a name="known-limit-01" href="#known-limit-01">01:</a>** Can't handle circular dependencies in the same way as NodeJS.
+**<a name="known-limit-01" href="#known-limit-01">01:</a>** _Can't handle circular dependencies in the same way as NodeJS._
 
 In NodeJS, top-level logics in a file run exactly at the time when it's required, which makes circular dependencies possible to work. Take an example of files `a.js` and `b.js`:
 
@@ -173,6 +173,21 @@ main();
 Though, for a webpack generated file, the real exporting is always done in the end of it. Webpack collects all the exports into an internal variable `__webpack_exports__`, then exports it at last, which makes circular dependencies always break.
 
 Making circular dependencies is a bad practice. But you might have to face them if using some libs that are popular but maintained since the early releases of NodeJS, like [jsdom](https://github.com/jsdom/jsdom). When this happens, please use the [externals](https://webpack.js.org/configuration/externals/) to leave the libs untouched.
+
+**<a name="known-limit-02" href="#known-limit-02">02:</a>** _Can't conditionally import not-yet-installed dependencies._
+
+Webpack always detects and resolves import statements regardless of whether they run conditionally. Logics as below end up with the conditionally imported dependency `colorette` resolved:
+
+```js
+function print(message, color) {
+  if (typeof color === 'string') {
+    message = require('colorette')[color](message);
+  }
+  console.log(message);
+}
+```
+
+Besides, conditionally importing any not-yet-installed dependency causes the compile-time error of `Module not found` in webpack. As a result, either, you need to make sure the conditionally imported dependency installed. Or, use the [externals](https://webpack.js.org/configuration/externals/) to leave it untouched.
 
 ## Contributing
 
