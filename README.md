@@ -70,8 +70,8 @@ Just a reminder, if to run output files with NodeJS, don't forget to set the [ta
 
 ## Blogs
 
-- [Transpile Webpack Plugin: transpiling files with webpack without bundling](https://medium.com/@licg9999/introducing-transpile-webpack-plugin-b8c86c7b0a21)
-- [Transpile Webpack Plugin: 让 Webpack 按照源文件的目录结构输出](https://segmentfault.com/a/1190000043177608)
+- [Server-side rendering for any React app on any FaaS provider - elaborating by a demo app of SSR with CRA on Netlify](https://github.com/licg9999/server-side-rendering-with-cra-on-netlify)
+- [Transpile Webpack Plugin: transpiling files with webpack without bundling](https://medium.com/@licg9999/introducing-transpile-webpack-plugin-b8c86c7b0a21) ([中文版本](https://segmentfault.com/a/1190000043177608))
 
 ## Options
 
