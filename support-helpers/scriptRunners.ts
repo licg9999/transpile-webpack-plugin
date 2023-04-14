@@ -10,7 +10,10 @@ import { createE2eDebuglogByFilePath, logStdout } from './logging';
 
 const debuglog = createE2eDebuglogByFilePath(__filename);
 
-const defaultSpawnOptions: SpawnOptions = { stdio: 'pipe', env: { NO_COLOR: 'true' } };
+const defaultSpawnOptions: SpawnOptions = {
+  stdio: 'pipe',
+  env: { ...process.env, NO_COLOR: 'true' },
+};
 
 export function exec(cmd: string, ...args: string[]): SpawnSyncReturns<string> {
   const ret = crossSpawn.sync(cmd, args, {
