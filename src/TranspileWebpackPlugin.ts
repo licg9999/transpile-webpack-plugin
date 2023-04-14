@@ -259,6 +259,7 @@ export class TranspileWebpackPlugin {
         if (!path.isAbsolute(request) && !request.startsWith('.')) {
           request = `.${path.sep}${request}`;
         }
+        request = request.replace(/\\/g, path.posix.sep);
 
         const extModCandidate = new TranspileExternalModule(
           request,
