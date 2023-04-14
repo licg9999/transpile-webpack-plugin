@@ -1,6 +1,6 @@
+import { ChildProcess, SpawnOptions, SpawnSyncReturns } from 'node:child_process';
 import { promisify } from 'node:util';
 
-import { ChildProcess, SpawnSyncReturns } from 'child_process';
 import { blueBright, dim } from 'colorette';
 import crossSpawn from 'cross-spawn';
 import treeKill from 'tree-kill';
@@ -10,8 +10,13 @@ import { createE2eDebuglogByFilePath, logStdout } from './logging';
 
 const debuglog = createE2eDebuglogByFilePath(__filename);
 
+const defaultSpawnOptions: SpawnOptions = { stdio: 'pipe', env: { NO_COLOR: 'true' } };
+
 export function exec(cmd: string, ...args: string[]): SpawnSyncReturns<string> {
-  const ret = crossSpawn.sync(cmd, args, { encoding: encodingText, stdio: 'pipe' });
+  const ret = crossSpawn.sync(cmd, args, {
+    ...defaultSpawnOptions,
+    encoding: encodingText,
+  });
   logStdout(
     `Did run ${blueBright([cmd, ...args].join(' '))}, with exit code ${blueBright(
       String(ret.status)
@@ -32,7 +37,7 @@ export function execAsync(
   getStdoutAsString(): string;
   getStderrAsString(): string;
 } {
-  const enhancedProc = crossSpawn(cmd, args, { stdio: 'pipe' });
+  const enhancedProc = crossSpawn(cmd, args, { ...defaultSpawnOptions });
 
   const expectState = expect.getState();
   const pids: number[] = expectState[KeyOfExecAsyncPidsInExpectState] ?? [];

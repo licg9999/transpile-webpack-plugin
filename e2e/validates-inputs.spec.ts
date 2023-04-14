@@ -11,7 +11,7 @@ describe('validates compiler options', () => {
     setupWebpackProject({
       'webpack.config.js': `
 const { HotModuleReplacementPlugin } = require('webpack');
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   plugins: [
     ${boolToText(validOpts.hmr, '', 'new HotModuleReplacementPlugin(),')}
@@ -40,7 +40,7 @@ describe('validates options', () => {
   }) {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   entry: './src/index.js',
   plugins: [
@@ -113,7 +113,7 @@ describe('validates entries', () => {
   it(`throws error if no entry found outside 'node_modules'`, () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   entry: require.resolve('lodash'),
   plugins: [new Plugin()],
@@ -128,7 +128,7 @@ module.exports = {
   it(`prints warning if any '.mjs' file found with target 'node'`, () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   mode: 'production',
   target: 'node',
@@ -149,7 +149,7 @@ module.exports = {
   it(`throws error if any '.json' file is not type of JSON`, () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   entry: './src/index.js',
   module: {
