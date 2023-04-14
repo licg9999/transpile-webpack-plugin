@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import { noop } from 'lodash';
 
 import {
@@ -23,7 +25,7 @@ describe('handles json', () => {
   it('with default JSON parser, outputs .json file as JSON file', () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable}
   entry: './src/index.js',
@@ -51,7 +53,7 @@ console.log(greeting);
   it(`with default JSON parser, doesn't generate source-map file for outputted JSON file`, () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable}
   entry: './src/index.js',
@@ -81,7 +83,7 @@ console.log(greeting);
   it('with JSON5 parser, outputs .json file w/ comment as JSON file w/o comment', () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 const JSON5 = require('json5');
 module.exports = {
   ${webpackConfigReusable}
@@ -123,7 +125,7 @@ console.log(greeting);
   it('with JSON5 parser, outputs file with ext other than .json as equivalent same-ext JS file', () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 const JSON5 = require('json5');
 module.exports = {
   ${webpackConfigReusable}
@@ -168,7 +170,7 @@ describe('handles url', () => {
   it('bundles data url into output file of the importer', () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable}
   entry: './src/index.js',
@@ -192,7 +194,7 @@ console.log(greeting);
   it('bundles http url into output file of the importer', () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable}
   entry: './src/index.js',
@@ -227,7 +229,7 @@ describe('handles asset', () => {
     () => {
       setupWebpackProject({
         'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable.replace(
     /output:\s*\{([^}]*)\}/s,
@@ -277,7 +279,7 @@ console.log(textsUrl);
     () => {
       setupWebpackProject({
         'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable}
   entry: './src/index.js',
@@ -324,7 +326,7 @@ console.log(
     () => {
       setupWebpackProject({
         'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable}
   entry: './src/index.js',
@@ -363,7 +365,7 @@ console.log(textsContent);
   it(`with asset/*, doesn't generate source-map file for outputted JS file`, () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable.replace(
     /output:\s*\{([^}]*)\}/s,
@@ -438,7 +440,7 @@ describe('handles vue SFC', () => {
     () => {
       setupWebpackProject({
         'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 const { VueLoaderPlugin } = require('vue-loader');
 module.exports = {
   ${webpackConfigReusable}
@@ -534,7 +536,7 @@ describe('with option.extentionMapping', () => {
   it('maps but correctly resolves the mapped in the output', () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable}
   entry: './src/index.es',
@@ -578,7 +580,7 @@ describe('edge cases on outputting JS file with ext other than .js', () => {
     it(`works with ${devtool}`, () => {
       setupWebpackProject({
         'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable}
   entry: './src/index.coffee',
@@ -627,8 +629,8 @@ export throwErrUnconditional = () ->
       expect(stderr).toIncludeMultiple([
         'Error',
         'Some error happened',
-        'src/throw.coffee:4',
-        'src/index.coffee:3',
+        `${path.normalize('src/throw.coffee')}:4`,
+        `${path.normalize('src/index.coffee')}:3`,
       ]);
     });
   }
@@ -636,7 +638,7 @@ export throwErrUnconditional = () ->
   it('works with minimize', () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable}
   entry: './src/index.coffee',
@@ -673,7 +675,7 @@ console.log('Hi, there!');
   it('works with resolve.extensions', () => {
     setupWebpackProject({
       'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   ${webpackConfigReusable}
   entry: './src/index.coffee',

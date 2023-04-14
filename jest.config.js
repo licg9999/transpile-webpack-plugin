@@ -4,11 +4,11 @@ const testPath = process.env.JEST_TEST_PATH;
 
 /** @type {import('jest').Config} */
 const jestConfig = {
-  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'].map((pattern) => {
+  testRegex: ['__test__/.*\\.[jt]sx?$', '(.*\\.)?(test|spec)\\.[jt]sx?$'].map((s) => {
     if (testPath) {
-      pattern = `<rootDir>/${testPath}/${pattern}`;
+      s = `${testPath}/(.*/)*${s}`;
     }
-    return pattern;
+    return s;
   }),
   preset: 'ts-jest/presets/js-with-ts',
   coverageProvider: 'v8',

@@ -29,7 +29,7 @@ print();
 `,
 
     [`lib/${webpackConfigDefaultFileName}`]: `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 module.exports = {
   entry: './src/index.js',
   mode: 'production',

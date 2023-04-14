@@ -11,4 +11,6 @@ process.env.NODE_DEBUG = `${packageName}:${program.section ?? '*'}`;
 
 const moreArgs = program.args.length ? ['--', ...program.args] : [];
 
-crossSpawn.sync('npm', ['run', 'e2e', ...moreArgs], { stdio: 'inherit' });
+const { status } = crossSpawn.sync('npm', ['run', 'e2e', ...moreArgs], { stdio: 'inherit' });
+
+process.exitCode = status;

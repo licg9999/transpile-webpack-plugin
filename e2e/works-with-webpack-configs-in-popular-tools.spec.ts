@@ -19,7 +19,7 @@ it('works with webpack config in facebook/create-react-app', () => {
   chdir('the-app');
   writeFiles({
     'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 
 const envInQuestion = 'production';
 
@@ -64,7 +64,7 @@ it('works with webpack config in vue/vue-cli', () => {
   chdir('the-app');
   writeFiles({
     'webpack.config.js': `
-const Plugin = require('${rootPath}');
+const Plugin = require(${JSON.stringify(rootPath)});
 
 const envInQuestion = 'production';
 
