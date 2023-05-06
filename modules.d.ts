@@ -1,4 +1,3 @@
-import 'jest-extended';
 import { Module, ModuleGraphConnection } from 'webpack';
 
 declare module 'webpack' {

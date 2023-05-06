@@ -1,4 +1,4 @@
-import { pluginName, hookStageVeryEarly } from './constants';
+import { hookStageVeryEarly, pluginName } from './constants';
 import { Compiler, EvalSourceMapDevToolPlugin, SourceMapDevToolPlugin } from './peers/webpack';
 import { CompilerOptions, SourceMapDevToolPluginOptions } from './types';
 

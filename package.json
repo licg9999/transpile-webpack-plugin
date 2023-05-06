@@ -34,7 +34,8 @@
     "lint:eslint": "node scripts/cross-dotenv-shell eslint FILE_GLOB",
     "fix-all": "run-s fix:*",
     "fix:prettier": "node scripts/cross-dotenv-shell prettier --write FILE_GLOB",
-    "fix:eslint": "node scripts/cross-dotenv-shell eslint --fix FILE_GLOB"
+    "fix:eslint": "node scripts/cross-dotenv-shell eslint --fix FILE_GLOB",
+    "git-clean": "git clean -d -f -x -e node_modules -e package-lock.json"
   },
   "peerDependencies": {
     "webpack": "^5.61.0"

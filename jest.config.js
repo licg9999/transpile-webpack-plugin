@@ -4,7 +4,7 @@ const testPath = process.env.JEST_TEST_PATH;
 
 /** @type {import('jest').Config} */
 const jestConfig = {
-  testRegex: ['__test__/.*\\.[jt]sx?$', '(.*\\.)?(test|spec)\\.[jt]sx?$'].map((s) => {
+  testRegex: ['__test__/.*\\.[jt]s$', '(.*\\.)?(test|spec)\\.[jt]s$'].map((s) => {
     if (testPath) {
       s = `${testPath}/(.*/)*${s}`;
     }

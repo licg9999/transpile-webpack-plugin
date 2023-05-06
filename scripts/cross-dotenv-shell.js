@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const crossSpawn = require('cross-spawn');
 const dotenv = require('dotenv');
 
