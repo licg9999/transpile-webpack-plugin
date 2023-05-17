@@ -39,7 +39,7 @@ export class TerserWebpackPluginController {
   setNamesToBeMinimized(names: Iterable<string>): void {
     if (!this.terserWebpackPlugin) return;
 
-    const newTest: TerserWebpackPlugin.Rules = this.iniTest ? flatten([this.iniTest]) : [];
+    const newTest: (string | RegExp)[] = this.iniTest ? flatten([this.iniTest]) : [];
     for (const name of names) {
       newTest.push(
         // Aligns to:
@@ -47,6 +47,6 @@ export class TerserWebpackPluginController {
         new RegExp(`^${name.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`, 'i')
       );
     }
-    this.terserWebpackPlugin.options.test = newTest;
+    this.terserWebpackPlugin.options.test = newTest as TerserWebpackPlugin.Rules;
   }
 }
